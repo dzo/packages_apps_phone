@@ -814,8 +814,9 @@ public class BluetoothHeadsetService extends Service {
                     BluetoothRemoteHeadset headset = new BluetoothRemoteHeadset();
                     mRemoteHeadsets.put(device, headset);
 
+                    ParcelUuid[] uuids = device.getUuids();
                     setState(device, BluetoothProfile.STATE_CONNECTING);
-                    if (device.getUuids() == null) {
+                    if (uuids == null) {
                         // We might not have got the UUID change notification from
                         // Bluez yet, if we have just paired. Try after 1.5 secs.
                         Message msg = new Message();
@@ -823,7 +824,28 @@ public class BluetoothHeadsetService extends Service {
                         msg.obj = device;
                         mHandler.sendMessageDelayed(msg, 1500);
                     } else {
-                        getSdpRecordsAndConnect(device);
+                        int channel = -2;
+                        if (BluetoothUuid.isUuidPresent(uuids, BluetoothUuid.Handsfree)) {
+                            channel = device.getServiceChannel(BluetoothUuid.Handsfree);
+                            log("SCN is " + channel);
+                            if (channel > 0) {
+                                getSdpRecordsAndConnect(device);
+                                return true;
+                            }
+                        } else if (BluetoothUuid.isUuidPresent(uuids, BluetoothUuid.HSP)) {
+                            channel = device.getServiceChannel(BluetoothUuid.HSP);
+                            log("SCN is " + channel);
+                            if (channel > 0) {
+                                getSdpRecordsAndConnect(device);
+                                return true;
+                            }
+                        }
+                        // We got UUIDs but wait till we update the server channel details in cache.
+                        Log.e(TAG, "SCN is "+ channel +" Trying to connect HFP after 1 sec");
+                        Message msg = new Message();
+                        msg.what = CONNECT_HEADSET_DELAYED;
+                        msg.obj = device;
+                        mHandler.sendMessageDelayed(msg, 1000);
                     }
                     return true;
                 } else {
