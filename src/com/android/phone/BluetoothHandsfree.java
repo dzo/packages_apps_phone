@@ -73,6 +73,7 @@ public class BluetoothHandsfree {
 
     /** The singleton instance. */
     private static BluetoothHandsfree sInstance;
+    public static final String SLC_ESTABLISHED = "android.bluetooth.headset.action.SLC_UP";
 
     private final Context mContext;
     private final BluetoothAdapter mAdapter;
@@ -2176,6 +2177,7 @@ public class BluetoothHandsfree {
                         if ((mRemoteBrsf & BRSF_HF_CW_THREE_WAY_CALLING) == 0x0) {
                             mServiceConnectionEstablished = true;
                             sendURC("OK");  // send immediately, then initiate audio
+                            broadcastSlcEstablished();
                             if (isIncallAudio()) {
                                 audioOn();
                             } else if (mCM.getFirstActiveRingingCall().isRinging()) {
@@ -2443,6 +2445,7 @@ public class BluetoothHandsfree {
                 mServiceConnectionEstablished = true;
                 sendURC("+CHLD: (0,1,2,3)");
                 sendURC("OK");  // send reply first, then connect audio
+                broadcastSlcEstablished();
                 if (isIncallAudio()) {
                     audioOn();
                 } else if (mCM.getFirstActiveRingingCall().isRinging()) {
@@ -2837,6 +2840,13 @@ public class BluetoothHandsfree {
                                                mHeadset.getRemoteDevice());
             return new AtCommandResult(AtCommandResult.OK);
         }
+    }
+
+    private void broadcastSlcEstablished() {
+        Intent intent = new Intent(SLC_ESTABLISHED);
+        intent.putExtra(BluetoothHeadset.EXTRA_STATE, BluetoothHeadset.STATE_CONNECTED);
+        intent.putExtra(BluetoothDevice.EXTRA_DEVICE, mHeadset.getRemoteDevice());
+        mContext.sendBroadcast(intent, android.Manifest.permission.BLUETOOTH);
     }
 
     private boolean inDebug() {
