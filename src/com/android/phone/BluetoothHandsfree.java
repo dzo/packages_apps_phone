@@ -111,9 +111,13 @@ public class BluetoothHandsfree {
     private static final int GSM_MAX_CONNECTIONS = 6;  // Max connections allowed by GSM
     private static final int CDMA_MAX_CONNECTIONS = 2;  // Max connections allowed by CDMA
 
+    private static final int MAX_IIENABLED = 7;
+
     private long mBgndEarliestConnectionTime = 0;
     private boolean mClip = false;  // Calling Line Information Presentation
     private boolean mIndicatorsEnabled = false;
+    /** Individual Indicators Activator for HFP 1.6, 1 based array*/
+    private boolean[] mIIEnabled = new boolean[MAX_IIENABLED + 1];
     private boolean mCmee = false;  // Extended Error reporting
     private long[] mClccTimestamps; // Timestamps associated with each clcc index
     private boolean[] mClccUsed;     // Is this clcc index in use
@@ -602,6 +606,10 @@ public class BluetoothHandsfree {
         }
 
         mRemoteCodec = 0;
+        for (int i = 1; i <= MAX_IIENABLED; i ++) {
+            // Individual Indicators are set to true by default
+            mIIEnabled[i] = true;
+        }
         if (isIncallAudio()) {
             audioOn();
         } else if ( mCM.getFirstActiveRingingCall().isRinging()) {
@@ -978,7 +986,7 @@ public class BluetoothHandsfree {
             batteryLevel = batteryLevel * 5 / scale;
             if (mBattchg != batteryLevel) {
                 mBattchg = batteryLevel;
-                if (sendUpdate()) {
+                if (sendUpdate() && mIIEnabled[7]) {
                     sendURC("+CIEV: 7," + mBattchg);
                 }
             }
@@ -999,7 +1007,7 @@ public class BluetoothHandsfree {
                 mRssi = signalToRssi(signal);  // no unsolicited CSQ
                 if (signal != mSignal) {
                     mSignal = signal;
-                    if (sendUpdate()) {
+                    if (sendUpdate() && mIIEnabled[5]) {
                         sendURC("+CIEV: 5," + mSignal);
                     }
                 }
@@ -1022,13 +1030,13 @@ public class BluetoothHandsfree {
 
             if (service != mService) {
                 mService = service;
-                if (sendUpdate) {
+                if (sendUpdate && mIIEnabled[1]) {
                     result.addResponse("+CIEV: 1," + mService);
                 }
             }
             if (roam != mRoam) {
                 mRoam = roam;
-                if (sendUpdate) {
+                if (sendUpdate && mIIEnabled[6]) {
                     result.addResponse("+CIEV: 6," + mRoam);
                 }
             }
@@ -2912,6 +2920,29 @@ public class BluetoothHandsfree {
                 } else {
                     return new AtCommandResult(AtCommandResult.OK);
                 }
+            }
+        });
+
+        // Bluetooth Indicators Activation
+        parser.register("+BIA", new AtCommandHandler() {
+            @Override
+            public AtCommandResult handleSetCommand(Object[] args) {
+                // AT+BIA=[[<indrep 1>][,[<indrep 2>][,...[,[<indrep n>]]]]]]
+                // Although indrep 2(call), 3(callsetup), 4(callheld) could be updated here,
+                // they won't be disabled.
+                if (DBG) Log.d(TAG, "Receiving AT+BIA");
+                final int size = (args.length > MAX_IIENABLED) ? MAX_IIENABLED : args.length;
+                for (int ai = 0, ii = 1; ai < size; ai ++, ii ++) {
+                    if (DBG) Log.d(TAG, "args[" + ai + "]=" + args[ai]);
+                    if (args[ai] instanceof Integer) {
+                        if ((Integer)args[ai] == 1) {
+                            mIIEnabled[ii] = true;
+                        } else if ((Integer)args[ai] == 0) {
+                            mIIEnabled[ii] = false;
+                        }
+                    }
+                }
+                return new AtCommandResult(AtCommandResult.OK);
             }
         });
         mPhonebook.register(parser);
