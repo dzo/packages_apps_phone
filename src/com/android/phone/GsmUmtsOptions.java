@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008 The Android Open Source Project
+ * Copyright (C) 2008, 2011 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,22 +49,33 @@ public class GsmUmtsOptions {
     protected void create() {
         mPrefActivity.addPreferencesFromResource(R.xml.gsm_umts_options);
         mButtonAPNExpand = (PreferenceScreen) mPrefScreen.findPreference(BUTTON_APN_EXPAND_KEY);
-        mButtonOperatorSelectionExpand =
-                (PreferenceScreen) mPrefScreen.findPreference(BUTTON_OPERATOR_SELECTION_EXPAND_KEY);
         mButtonPrefer2g = (CheckBoxPreference) mPrefScreen.findPreference(BUTTON_PREFER_2G_KEY);
-        if (PhoneFactory.getDefaultPhone().getPhoneType() != Phone.PHONE_TYPE_GSM) {
+        enableScreen();
+    }
+
+    public void enableScreen() {
+        Phone phone = PhoneFactory.getDefaultPhone();
+        if (phone.getPhoneType() != Phone.PHONE_TYPE_GSM) {
             log("Not a GSM phone");
             mButtonAPNExpand.setEnabled(false);
-            mButtonOperatorSelectionExpand.setEnabled(false);
             mButtonPrefer2g.setEnabled(false);
-        } else if (mPrefActivity.getResources().getBoolean(R.bool.csp_enabled)) {
-            if (PhoneFactory.getDefaultPhone().isCspPlmnEnabled()) {
-                log("[CSP] Enabling Operator Selection menu.");
-                mButtonOperatorSelectionExpand.setEnabled(true);
-            } else {
-                log("[CSP] Disabling Operator Selection menu.");
-                mPrefScreen.removePreference(mPrefScreen
-                      .findPreference(BUTTON_OPERATOR_SELECTION_EXPAND_KEY));
+        }
+        mButtonOperatorSelectionExpand = (PreferenceScreen) mPrefScreen
+                .findPreference(BUTTON_OPERATOR_SELECTION_EXPAND_KEY);
+        if (mButtonOperatorSelectionExpand != null) {
+            if (phone.getPhoneType() != Phone.PHONE_TYPE_GSM) {
+                mButtonOperatorSelectionExpand.setEnabled(false);
+            } else if (!phone.isManualNetSelAllowed()) {
+                mButtonOperatorSelectionExpand.setEnabled(false);
+            } else if (mPrefActivity.getResources().getBoolean(R.bool.csp_enabled)) {
+                if (phone.isCspPlmnEnabled()) {
+                    log("[CSP] Enabling Operator Selection menu.");
+                    mButtonOperatorSelectionExpand.setEnabled(true);
+                } else {
+                    log("[CSP] Disabling Operator Selection menu.");
+                    mPrefScreen.removePreference(mPrefScreen
+                            .findPreference(BUTTON_OPERATOR_SELECTION_EXPAND_KEY));
+                }
             }
         }
     }

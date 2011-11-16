@@ -291,6 +291,7 @@ public class Settings extends PreferenceActivity implements DialogInterface.OnCl
         // upon resumption from the sub-activity, make sure we re-enable the
         // preferences.
         getPreferenceScreen().setEnabled(true);
+        if (mGsmUmtsOptions != null) mGsmUmtsOptions.enableScreen();
 
         ConnectivityManager cm =
                 (ConnectivityManager)getSystemService(Context.CONNECTIVITY_SERVICE);
