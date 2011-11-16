@@ -57,7 +57,6 @@ public class GsmUmtsOptions {
         Phone phone = PhoneFactory.getDefaultPhone();
         if (phone.getPhoneType() != Phone.PHONE_TYPE_GSM) {
             log("Not a GSM phone");
-            mButtonAPNExpand.setEnabled(false);
             mButtonPrefer2g.setEnabled(false);
         }
         mButtonOperatorSelectionExpand = (PreferenceScreen) mPrefScreen
