@@ -208,14 +208,8 @@ public class CallNotifier extends Handler
         // TODO: We probably don't need the mSignalInfoToneGenerator instance
         // around forever. Need to change it so as to create a ToneGenerator instance only
         // when a tone is being played and releases it after its done playing.
-        try {
-            mSignalInfoToneGenerator = new ToneGenerator(AudioManager.STREAM_VOICE_CALL,
-                    TONE_RELATIVE_VOLUME_SIGNALINFO);
-        } catch (RuntimeException e) {
-            Log.w(LOG_TAG, "CallNotifier: Exception caught while creating " +
-                    "mSignalInfoToneGenerator: " + e);
-            mSignalInfoToneGenerator = null;
-        }
+        createSignalInfoToneGenerator();
+
 
         mRinger = ringer;
         mBluetoothHandsfree = btMgr;
@@ -888,6 +882,17 @@ public class CallNotifier extends Handler
         }
     }
 
+    void createSignalInfoToneGenerator() {
+        try {
+            mSignalInfoToneGenerator = new ToneGenerator(AudioManager.STREAM_VOICE_CALL,
+                    TONE_RELATIVE_VOLUME_SIGNALINFO);
+        } catch (RuntimeException e) {
+            Log.w(LOG_TAG, "CallNotifier: Exception caught while creating " +
+                    "mSignalInfoToneGenerator: " + e);
+            mSignalInfoToneGenerator = null;
+        }
+    }
+
     void updateCallNotifierRegistrationsAfterRadioTechnologyChange() {
         if (DBG) Log.d(LOG_TAG, "updateCallNotifierRegistrationsAfterRadioTechnologyChange...");
         // Unregister all events from the old obsolete phone
@@ -919,6 +924,7 @@ public class CallNotifier extends Handler
 
         // Register all events new to the new active phone
         registerForNotifications();
+        createSignalInfoToneGenerator();
     }
 
     private void registerForNotifications() {
