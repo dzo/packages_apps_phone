@@ -735,6 +735,9 @@ public class DTMFTwelveKeyDialer implements View.OnTouchListener, View.OnKeyList
      * Plays the local tone based the phone type.
      */
     public void startTone(char c) {
+
+        boolean generateTone = true;
+
         // Only play the tone if it exists.
         if (!mToneMap.containsKey(c)) {
             return;
@@ -745,15 +748,34 @@ public class DTMFTwelveKeyDialer implements View.OnTouchListener, View.OnKeyList
 
         if (DBG) log("startDtmfTone()...");
 
-        // For Short DTMF we need to play the local tone for fixed duration
-        if (mShortTone) {
-            sendShortDtmfToNetwork(c);
-        } else {
-            // Pass as a char to be sent to network
-            Log.i(LOG_TAG, "send long dtmf for " + c);
-            mCM.startDtmf(c);
+        if (PhoneApp.getInstance().isHeadsetPlugged()) {
+            int TTYmode = Settings.Secure.getInt(
+                    PhoneApp.getInstance().getContentResolver(),
+                    Settings.Secure.PREFERRED_TTY_MODE,
+                    Phone.TTY_MODE_OFF);
+
+            /*
+             * In TTY full and and voice carry over modes, DTMF tone should not
+             * be played generateTone is false for FULL/VCO mode
+             */
+            generateTone = !((TTYmode == Phone.TTY_MODE_FULL)
+                    || (TTYmode == Phone.TTY_MODE_VCO));
         }
-        startLocalToneIfNeeded(c);
+
+        if (generateTone) {
+            // For Short DTMF we need to play the local tone for fixed duration
+            if (mShortTone) {
+                sendShortDtmfToNetwork(c);
+            } else {
+                // Pass as a char to be sent to network
+                Log.i(LOG_TAG, "send long dtmf for " + c);
+                mCM.startDtmf(c);
+            }
+            startLocalToneIfNeeded(c);
+        } else {
+            if (DBG)
+                log("Not starting local tone. Phone connected to TTY in FULL or VCO mode");
+        }
     }
 
     /**

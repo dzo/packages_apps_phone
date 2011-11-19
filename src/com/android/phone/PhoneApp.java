@@ -233,6 +233,7 @@ public class PhoneApp extends Application implements AccelerometerListener.Orien
     private boolean mTtyEnabled;
     // Current TTY operating mode selected by user
     private int mPreferredTtyMode = Phone.TTY_MODE_OFF;
+    private boolean mTtySetOnPowerUp = false;
 
     /**
      * Set the restore mute state flag. Used when we are setting the mute state
@@ -587,7 +588,6 @@ public class PhoneApp extends Application implements AccelerometerListener.Orien
                     phone.getContext().getContentResolver(),
                     android.provider.Settings.Secure.PREFERRED_TTY_MODE,
                     Phone.TTY_MODE_OFF);
-            mHandler.sendMessage(mHandler.obtainMessage(EVENT_TTY_PREFERRED_MODE_CHANGED, 0));
         }
         // Read HAC settings and configure audio hardware
         if (getResources().getBoolean(R.bool.hac_enabled)) {
@@ -1559,12 +1559,8 @@ public class PhoneApp extends Application implements AccelerometerListener.Orien
     }
 
     private void handleServiceStateChanged(Intent intent) {
-        /**
-         * This used to handle updating EriTextWidgetProvider this routine
-         * and and listening for ACTION_SERVICE_STATE_CHANGED intents could
-         * be removed. But leaving just in case it might be needed in the near
-         * future.
-         */
+
+        // This function used to handle updating EriTextWidgetProvider
 
         // If service just returned, start sending out the queued messages
         ServiceState ss = ServiceState.newFromBundle(intent.getExtras());
@@ -1572,6 +1568,25 @@ public class PhoneApp extends Application implements AccelerometerListener.Orien
         if (ss != null) {
             int state = ss.getState();
             notificationMgr.updateNetworkSelection(state);
+
+            if ((state == ServiceState.STATE_IN_SERVICE || state == ServiceState.STATE_EMERGENCY_ONLY)
+                && mTtyEnabled && !mTtySetOnPowerUp) {
+                /*
+                * Force TTY update once after service is on. This will send TTY
+                * request to RIL. RIL will send configure request to modem to
+                * do CTM encoding/decoding - Ref:TS 26.226. UI will show TTY icon
+                * only after RIL configures modem successfully.
+                */
+                mHandler.sendMessage(mHandler.obtainMessage(EVENT_TTY_PREFERRED_MODE_CHANGED, 0));
+                mTtySetOnPowerUp = true;
+            }
+            if (state == ServiceState.STATE_POWER_OFF || state == ServiceState.STATE_OUT_OF_SERVICE) {
+                /*
+                * Disable this flag so that TTY set will be send to RIL in after
+                * service is available
+                */
+                mTtySetOnPowerUp = false;
+            }
         }
     }
 
@@ -1659,25 +1674,6 @@ public class PhoneApp extends Application implements AccelerometerListener.Orien
             Intent ttyModeChanged = new Intent(TtyIntent.TTY_ENABLED_CHANGE_ACTION);
             ttyModeChanged.putExtra("ttyEnabled", ttymode != Phone.TTY_MODE_OFF);
             sendBroadcast(ttyModeChanged);
-
-            String audioTtyMode;
-            switch (ttymode) {
-            case Phone.TTY_MODE_FULL:
-                audioTtyMode = "tty_full";
-                break;
-            case Phone.TTY_MODE_VCO:
-                audioTtyMode = "tty_vco";
-                break;
-            case Phone.TTY_MODE_HCO:
-                audioTtyMode = "tty_hco";
-                break;
-            case Phone.TTY_MODE_OFF:
-            default:
-                audioTtyMode = "tty_off";
-                break;
-            }
-            AudioManager audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
-            audioManager.setParameters("tty_mode="+audioTtyMode);
         }
     }
 
