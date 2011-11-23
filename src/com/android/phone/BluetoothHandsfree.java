@@ -135,6 +135,7 @@ public class BluetoothHandsfree {
     // Audio parameters
     private static final String HEADSET_NREC = "bt_headset_nrec";
     private static final String HEADSET_NAME = "bt_headset_name";
+    private static final String HEADSET_VGS  = "bt_headset_vgs";
 
     private int mRemoteBrsf = 0;
     private int mLocalBrsf = 0;
@@ -290,7 +291,8 @@ public class BluetoothHandsfree {
 
         private void connectSco() {
             synchronized (BluetoothHandsfree.this) {
-                if (!Thread.interrupted() && isHeadsetConnected() &&
+                if (!Thread.currentThread().interrupted() &&
+                    isHeadsetConnected() &&
                     (mAudioPossible || allowAudioAnytime()) &&
                     mConnectedSco == null) {
                     Log.i(TAG, "Routing audio for incoming SCO connection");
@@ -362,7 +364,8 @@ public class BluetoothHandsfree {
 
         private void connectSco() {
             synchronized (BluetoothHandsfree.this) {
-                if (!Thread.interrupted() && isHeadsetConnected() && mConnectedSco == null) {
+                if (!Thread.currentThread().interrupted() &&
+                    isHeadsetConnected() && mConnectedSco == null) {
                     if (VDBG) log("Routing audio for outgoing SCO conection");
                     mConnectedSco = mOutgoingSco;
                     mAudioManager.setBluetoothScoOn(true);
@@ -1394,7 +1397,7 @@ public class BluetoothHandsfree {
                     }
                     break;
                 case MESSAGE_CHECK_PENDING_SCO:
-                    if (mPendingSco && isA2dpMultiProfile()) {
+                    if (mPendingSco) {
                         Log.w(TAG, "Timeout suspending A2DP for SCO (mA2dpState = " +
                                 mA2dpState + "). Starting SCO anyway");
                         connectScoThread();
@@ -1527,7 +1530,7 @@ public class BluetoothHandsfree {
 
         mA2dpSuspended = false;
         mPendingSco = false;
-        if (isA2dpMultiProfile() && mA2dpState == BluetoothA2dp.STATE_PLAYING) {
+        if ( mA2dpState == BluetoothA2dp.STATE_PLAYING) {
             if (DBG) log("suspending A2DP stream for SCO");
             mA2dpSuspended = mA2dp.suspendSink(mA2dpDevice);
             if (mA2dpSuspended) {
@@ -1573,10 +1576,8 @@ public class BluetoothHandsfree {
                 ", mA2dpSuspended: " + mA2dpSuspended);
 
         if (mA2dpSuspended) {
-            if (isA2dpMultiProfile()) {
-                if (DBG) log("resuming A2DP stream after disconnecting SCO");
-                mA2dp.resumeSink(mA2dpDevice);
-            }
+            if (DBG) log("resuming A2DP stream after disconnecting SCO");
+            mA2dp.resumeSink(mA2dpDevice);
             mA2dpSuspended = false;
         }
 
@@ -1988,6 +1989,29 @@ public class BluetoothHandsfree {
                 return headsetButtonPress();
             }
         });
+        // Speaker Gain
+        parser.register("+VGS", new AtCommandHandler() {
+            @Override
+            public AtCommandResult handleSetCommand(Object[] args) {
+                // AT+VGS=<gain>    in range [0,15]
+                if (args.length != 1 || !(args[0] instanceof Integer)) {
+                    return new AtCommandResult(AtCommandResult.ERROR);
+                }
+                mScoGain = (Integer) args[0];
+                int flag =  mAudioManager.isBluetoothScoOn() ? AudioManager.FLAG_SHOW_UI:0;
+
+                mAudioManager.setStreamVolume(AudioManager.STREAM_BLUETOOTH_SCO, mScoGain, flag);
+                return new AtCommandResult(AtCommandResult.OK);
+            }
+        });
+        parser.register("+VGM", new AtCommandHandler() {
+            @Override
+            public AtCommandResult handleSetCommand(Object[] args) {
+                // AT+VGM=<gain>    in range [0,15]
+                // Headset/Handsfree is reporting its current gain setting
+                return new AtCommandResult(AtCommandResult.OK);
+            }
+        });
     }
 
     /**
@@ -2074,6 +2098,12 @@ public class BluetoothHandsfree {
                 // send the features we support
                 if (args.length == 1 && (args[0] instanceof Integer)) {
                     mRemoteBrsf = (Integer) args[0];
+                    if ((mRemoteBrsf & BRSF_HF_REMOTE_VOL_CONTROL) == 0x0) {
+                        Log.i(TAG, " remote volume control not supported ");
+                        mAudioManager.setParameters(HEADSET_VGS+"=off");
+                    } else {
+                        mAudioManager.setParameters(HEADSET_VGS+"=on");
+                    }
                 } else {
                     Log.w(TAG, "HF didn't sent BRSF assuming 0");
                 }
@@ -2251,7 +2281,12 @@ public class BluetoothHandsfree {
                         c = ((String) args[0]).charAt(0);
                     }
                     if (isValidDtmf(c)) {
-                        phone.sendDtmf(c);
+                        if (phone.getPhoneType() == Phone.PHONE_TYPE_CDMA) {
+                            String s = Character.toString(c);
+                            phone.sendBurstDtmf(s, 0, 0, null);
+                        } else {
+                            phone.sendDtmf(c);
+                        }
                         return new AtCommandResult(AtCommandResult.OK);
                     }
                 }

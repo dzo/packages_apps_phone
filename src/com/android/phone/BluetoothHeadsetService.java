@@ -604,7 +604,7 @@ public class BluetoothHeadsetService extends Service {
                     getPriority(device) == BluetoothProfile.PRIORITY_OFF) {
                     return false;
                 }
-                if (currDevice != null) {
+                if ((currDevice != null) && (!(currDevice.equals(device)))) {
                     disconnect(currDevice);
                 }
                 try {
