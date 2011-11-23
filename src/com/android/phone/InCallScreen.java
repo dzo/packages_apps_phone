@@ -581,10 +581,6 @@ public class InCallScreen extends Activity
         // Listen for broadcast intents that might affect the onscreen UI.
         registerReceiver(mReceiver, new IntentFilter(Intent.ACTION_HEADSET_PLUG));
 
-        // Keep a "dialer session" active when we're in the foreground.
-        // (This is needed to play DTMF tones.)
-        mDialer.startDialerSession();
-
         // Restore various other state from the InCallUiState object:
 
         // Update the onscreen dialpad state to match the InCallUiState.
@@ -630,6 +626,10 @@ public class InCallScreen extends Activity
             // (We need to stay here in the InCallScreen so that the user
             // is able to see the error dialog!)
             handledStartupError = true;
+        } else {
+            // Keep a "dialer session" active when we're in the foreground.
+            // (This is needed to play DTMF tones.)
+            mDialer.startDialerSession();
         }
 
         // Set the volume control handler while we are in the foreground.
