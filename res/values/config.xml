@@ -68,7 +68,7 @@
     <bool name="hac_enabled">false</bool>
 
     <!-- Flag indicating if dtmf tone type is enabled -->
-    <bool name="dtmf_type_enabled">false</bool>
+    <bool name="dtmf_type_enabled">true</bool>
 
     <!-- Flag indicating if auto retry is enabled -->
     <bool name="auto_retry_enabled">false</bool>
