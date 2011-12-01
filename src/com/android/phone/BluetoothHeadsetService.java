@@ -197,8 +197,11 @@ public class BluetoothHeadsetService extends Service {
                     mRemoteHeadsets.put(info.mRemoteDevice, remoteHeadset);
 
                     try {
-                        mBluetoothService.notifyIncomingConnection(
-                            info.mRemoteDevice.getAddress());
+                        if (!mBluetoothService.notifyIncomingConnection(
+                            info.mRemoteDevice.getAddress())) {
+                            Log.e(TAG, "notifyIncomingConnection failed");
+                            rejectIncomingConnection(info);
+                        }
                     } catch (RemoteException e) {
                         Log.e(TAG, "notifyIncomingConnection");
                     }
@@ -224,8 +227,11 @@ public class BluetoothHeadsetService extends Service {
                     mRemoteHeadsets.get(info.mRemoteDevice).mIncomingInfo = info;
 
                     try {
-                        mBluetoothService.notifyIncomingConnection(
-                            info.mRemoteDevice.getAddress());
+                        if (!mBluetoothService.notifyIncomingConnection(
+                            info.mRemoteDevice.getAddress())) {
+                            Log.e(TAG, "notifyIncomingConnection failed");
+                            rejectIncomingConnection(info);
+                        }
                     } catch (RemoteException e) {
                         Log.e(TAG, "notifyIncomingConnection");
                     }
