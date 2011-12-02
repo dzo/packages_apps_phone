@@ -902,7 +902,7 @@ public class NotificationMgr implements CallerInfoAsyncQuery.OnQueryCompleteList
 
         // Activate a couple of special Notification features if an
         // incoming call is ringing:
-        if (hasRingingCall) {
+        if (hasRingingCall || hasActiveCall) {
             if (DBG) log("- Using hi-pri notification for ringing call!");
 
             // This is a high-priority event that should be shown even if the
