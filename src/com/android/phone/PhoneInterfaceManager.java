@@ -63,6 +63,8 @@ public class PhoneInterfaceManager extends ITelephony.Stub {
     private static final int CMD_INVOKE_OEM_RIL_REQUEST = 7;
     private static final int EVENT_INVOKE_OEM_RIL_REQUEST = 8;
     private static final int EVENT_UNSOL_OEM_HOOK_EXT_APP = 9;
+    private static final int CMD_SET_TRANSMIT_POWER = 10;
+    private static final int EVENT_SET_TRANSMIT_POWER_DONE = 11;
 
     /** The singleton instance. */
     private static PhoneInterfaceManager sInstance;
@@ -188,6 +190,28 @@ public class PhoneInterfaceManager extends ITelephony.Stub {
                 case EVENT_UNSOL_OEM_HOOK_EXT_APP:
                     ar = (AsyncResult)msg.obj;
                     broadcastUnsolOemHookIntent((byte[])(ar.result));
+                    break;
+
+                case CMD_SET_TRANSMIT_POWER:
+                    request = (MainThreadRequest) msg.obj;
+                    onCompleted = obtainMessage(EVENT_SET_TRANSMIT_POWER_DONE, request);
+                    mPhone.setTransmitPower((Integer) request.argument, onCompleted);
+                    break;
+
+                case EVENT_SET_TRANSMIT_POWER_DONE:
+                    boolean retStatus = false;
+                    ar = (AsyncResult)msg.obj;
+                    request = (MainThreadRequest)ar.userObj;
+
+                    if (ar.exception == null) {
+                        retStatus = true;
+                    }
+                    request.result = retStatus;
+
+                    // Wake up the requesting thread
+                    synchronized (request) {
+                        request.notifyAll();
+                    }
                     break;
 
                 default:
@@ -862,5 +886,18 @@ public class PhoneInterfaceManager extends ITelephony.Stub {
      */
     public int getLteOnCdmaMode() {
         return mPhone.getLteOnCdmaMode();
+    }
+
+    /**
+     * Sets the transmit power
+     *
+     * @param power - Specifies the transmit power that is allowed. One of
+     *            TRANSMIT_POWER_DEFAULT      - restore default transmit power
+     *            TRANSMIT_POWER_WIFI_HOTSPOT - reduce transmit power as per FCC
+     *                               regulations (CFR47 2.1093) for WiFi hotspot
+     */
+    public boolean setTransmitPower(int powerLevel) {
+        enforceModifyPermission();
+        return (Boolean) sendRequest(CMD_SET_TRANSMIT_POWER, powerLevel);
     }
 }
