@@ -26,7 +26,6 @@ public class CallWaitingCheckBoxPreference extends CheckBoxPreference {
     public CallWaitingCheckBoxPreference(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
 
-        phone = PhoneApp.getPhone();
     }
 
     public CallWaitingCheckBoxPreference(Context context, AttributeSet attrs) {
@@ -37,7 +36,12 @@ public class CallWaitingCheckBoxPreference extends CheckBoxPreference {
         this(context, null);
     }
 
-    void init(TimeConsumingPreferenceListener listener, boolean skipReading) {
+    void init(TimeConsumingPreferenceListener listener, boolean skipReading, int subscription) {
+        // Get the selected subscription
+        if (DBG)
+            Log.d(LOG_TAG, "CallWaitingCheckBoxPreference init, subscription :" + subscription);
+        phone = PhoneApp.getInstance().getPhone(subscription);
+
         tcpListener = listener;
 
         if (!skipReading) {

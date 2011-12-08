@@ -203,7 +203,7 @@ public class CallController extends Handler {
         }
 
         String scheme = uri.getScheme();
-        String number = PhoneNumberUtils.getNumberFromIntent(intent, mApp);
+        String number = PhoneNumberUtils.getNumberFromIntent(intent, mApp.mContext);
         if (VDBG) {
             log("- action: " + action);
             log("- uri: " + uri);
@@ -342,7 +342,8 @@ public class CallController extends Handler {
             String scheme = (uri != null) ? uri.getScheme() : null;
             String sipPhoneUri = intent.getStringExtra(
                     OutgoingCallBroadcaster.EXTRA_SIP_PHONE_URI);
-            phone = PhoneUtils.pickPhoneBasedOnNumber(mCM, scheme, number, sipPhoneUri);
+            int sub = mApp.getVoiceSubscription();
+            phone = PhoneUtils.pickPhoneBasedOnNumber(mCM, scheme, number, sipPhoneUri, sub);
             if (VDBG) log("- got Phone instance: " + phone + ", class = " + phone.getClass());
 
             // update okToCallStatus based on new phone
@@ -367,7 +368,7 @@ public class CallController extends Handler {
             return CallStatusCode.NO_PHONE_NUMBER_SUPPLIED;
         }
 
-        boolean isEmergencyNumber = PhoneNumberUtils.isLocalEmergencyNumber(number, mApp);
+        boolean isEmergencyNumber = PhoneNumberUtils.isLocalEmergencyNumber(number, mApp.mContext);
         boolean isEmergencyIntent = Intent.ACTION_CALL_EMERGENCY.equals(intent.getAction());
 
         if (isEmergencyNumber && !isEmergencyIntent) {
@@ -445,7 +446,7 @@ public class CallController extends Handler {
 
         // Watch out: PhoneUtils.placeCall() returns one of the
         // CALL_STATUS_* constants, not a CallStatusCode enum value.
-        int callStatus = PhoneUtils.placeCall(mApp,
+        int callStatus = PhoneUtils.placeCall(mApp.mContext,
                                               phone,
                                               number,
                                               contactUri,
@@ -643,7 +644,7 @@ public class CallController extends Handler {
             return actualNumberToDial;
         }
 
-        return PhoneUtils.getNumberFromIntent(PhoneApp.getInstance(), intent);
+        return PhoneUtils.getNumberFromIntent(PhoneApp.getInstance().mContext, intent);
     }
 
     /**
@@ -731,8 +732,8 @@ public class CallController extends Handler {
                 // be cleaner to just set a pending call status code here,
                 // and then let the InCallScreen display the toast...
                 if (mCM.getState() == Phone.State.OFFHOOK) {
-                    Toast.makeText(mApp, R.string.incall_status_dialed_mmi, Toast.LENGTH_SHORT)
-                            .show();
+                    Toast.makeText(mApp.mContext,
+                            R.string.incall_status_dialed_mmi, Toast.LENGTH_SHORT).show();
                 }
                 break;
 

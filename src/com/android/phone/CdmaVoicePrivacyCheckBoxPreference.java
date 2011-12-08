@@ -36,7 +36,7 @@ public class CdmaVoicePrivacyCheckBoxPreference extends CheckBoxPreference {
     public CdmaVoicePrivacyCheckBoxPreference(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
 
-        phone = PhoneApp.getPhone();
+        phone = PhoneApp.getInstance().getPhone();
         phone.getEnhancedVoicePrivacy(mHandler.obtainMessage(MyHandler.MESSAGE_GET_VP));
     }
 

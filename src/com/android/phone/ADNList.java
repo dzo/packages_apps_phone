@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2007 The Android Open Source Project
+ * Copyright (c) 2010-2011, Code Aurora Forum. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +19,8 @@ package com.android.phone;
 
 import static android.view.Window.PROGRESS_VISIBILITY_OFF;
 import static android.view.Window.PROGRESS_VISIBILITY_ON;
+import static com.android.internal.telephony.MSimConstants.SUB1;
+import static com.android.internal.telephony.MSimConstants.SUB2;
 
 import android.app.ListActivity;
 import android.content.AsyncQueryHandler;
@@ -27,6 +30,7 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.telephony.MSimTelephonyManager;
 import android.provider.Settings;
 import android.util.Log;
 import android.view.Window;
@@ -69,6 +73,7 @@ public class ADNList extends ListActivity {
     private TextView mEmptyText;
 
     protected int mInitialSelection = -1;
+    protected int mSubscription = 0;
 
     @Override
     protected void onCreate(Bundle icicle) {
@@ -95,8 +100,15 @@ public class ADNList extends ListActivity {
 
     protected Uri resolveIntent() {
         Intent intent = getIntent();
+        mSubscription = MSimTelephonyManager.getDefault().getPreferredVoiceSubscription();
         if (intent.getData() == null) {
-            intent.setData(Uri.parse("content://icc/adn"));
+            if (mSubscription == SUB1) {
+                intent.setData(Uri.parse("content://icc/adn"));
+            } else if (mSubscription == SUB2) {
+                intent.setData(Uri.parse("content://icc/adn_sub2"));
+            } else {
+                if (DBG) log("resolveIntent: invalid subscription");
+            }
         }
 
         return intent.getData();

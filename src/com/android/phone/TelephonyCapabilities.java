@@ -21,6 +21,7 @@ import android.provider.Settings;
 import android.util.Log;
 
 import com.android.internal.telephony.Phone;
+import android.telephony.TelephonyManager;
 
 /**
  * TODO: This is intended as a temporary repository for behavior policy
@@ -41,14 +42,22 @@ public class TelephonyCapabilities {
      * should we be looking only at the setting?
      */
     /* package */ static boolean useShortDtmfTones(Phone phone, Context context) {
+        int toneType;
         int phoneType = phone.getPhoneType();
         if (phoneType == Phone.PHONE_TYPE_GSM) {
             return false;
         } else if (phoneType == Phone.PHONE_TYPE_CDMA) {
-            int toneType = android.provider.Settings.System.getInt(
-                    context.getContentResolver(),
-                Settings.System.DTMF_TONE_TYPE_WHEN_DIALING,
-                CallFeaturesSetting.DTMF_TONE_TYPE_NORMAL);
+            if (TelephonyManager.getDefault().isMultiSimEnabled()) {
+                toneType = android.provider.Settings.System.getInt(
+                        context.getContentResolver(),
+                    Settings.System.DTMF_TONE_TYPE_WHEN_DIALING,
+                    MSimCallFeaturesSetting.DTMF_TONE_TYPE_NORMAL);
+            } else {
+                toneType = android.provider.Settings.System.getInt(
+                        context.getContentResolver(),
+                    Settings.System.DTMF_TONE_TYPE_WHEN_DIALING,
+                    CallFeaturesSetting.DTMF_TONE_TYPE_NORMAL);
+            }
             if (toneType == CallFeaturesSetting.DTMF_TONE_TYPE_NORMAL) {
                 return true;
             } else {

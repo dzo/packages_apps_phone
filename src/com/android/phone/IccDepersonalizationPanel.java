@@ -165,7 +165,7 @@ public class IccDepersonalizationPanel extends IccPanel {
         mStatusPanel = (LinearLayout) findViewById(R.id.status_panel);
         mStatusText = (TextView) findViewById(R.id.status_text);
 
-        mPhone = PhoneApp.getPhone();
+        mPhone = PhoneApp.getInstance().getPhone();
     }
 
     @Override

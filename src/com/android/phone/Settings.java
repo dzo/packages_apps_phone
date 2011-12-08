@@ -211,7 +211,7 @@ public class Settings extends PreferenceActivity implements DialogInterface.OnCl
 
         addPreferencesFromResource(R.xml.network_setting);
 
-        mPhone = PhoneApp.getPhone();
+        mPhone = PhoneApp.getInstance().getPhone();
         mHandler = new MyHandler();
 
         //get UI object references

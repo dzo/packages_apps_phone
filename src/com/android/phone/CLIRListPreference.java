@@ -27,7 +27,6 @@ public class CLIRListPreference extends ListPreference {
     public CLIRListPreference(Context context, AttributeSet attrs) {
         super(context, attrs);
 
-        phone = PhoneApp.getPhone();
     }
 
     public CLIRListPreference(Context context) {
@@ -45,7 +44,12 @@ public class CLIRListPreference extends ListPreference {
         }
     }
 
-    void init(TimeConsumingPreferenceListener listener, boolean skipReading) {
+    void init(TimeConsumingPreferenceListener listener, boolean skipReading, int subscription) {
+        // Get the selected subscription
+        if (DBG)
+            Log.d(LOG_TAG, "CLIRListPreference init, subscription :" + subscription);
+        phone = PhoneApp.getInstance().getPhone(subscription);
+
         tcpListener = listener;
         if (!skipReading) {
             phone.getOutgoingCallerIdDisplay(mHandler.obtainMessage(MyHandler.MESSAGE_GET_CLIR,

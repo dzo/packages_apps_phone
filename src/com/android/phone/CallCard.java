@@ -73,7 +73,7 @@ public class CallCard extends FrameLayout
 
     // Top-level subviews of the CallCard
     private ViewGroup mCallInfoContainer;  // Container for info about the current call(s)
-    private ViewGroup mPrimaryCallInfo;  // "Call info" block #1 (the foreground or ringing call)
+    protected ViewGroup mPrimaryCallInfo;  // "Call info" block #1 (the foreground or ringing call)
     private ViewGroup mPrimaryCallBanner;  // "Call banner" for the primary call
     private ViewGroup mSecondaryCallInfo;  // "Call info" block #2 (the background "on hold" call)
 
@@ -88,8 +88,8 @@ public class CallCard extends FrameLayout
     // including photo / name / phone number / etc.
     private InCallContactPhoto mPhoto;
     private TextView mName;
-    private TextView mPhoneNumber;
-    private TextView mLabel;
+    protected TextView mPhoneNumber;
+    protected TextView mLabel;
     private TextView mCallTypeLabel;
     private TextView mSocialStatus;
 
@@ -100,13 +100,13 @@ public class CallCard extends FrameLayout
     private InCallContactPhoto mSecondaryCallPhoto;
 
     // Onscreen hint for the incoming call RotarySelector widget.
-    private int mIncomingCallWidgetHintTextResId;
-    private int mIncomingCallWidgetHintColorResId;
+    protected int mIncomingCallWidgetHintTextResId;
+    protected int mIncomingCallWidgetHintColorResId;
 
-    private CallTime mCallTime;
+    protected CallTime mCallTime;
 
     // Track the state for the photo.
-    private ContactsAsyncHelper.ImageTracker mPhotoTracker;
+    protected ContactsAsyncHelper.ImageTracker mPhotoTracker;
 
     // Cached DisplayMetrics density.
     private float mDensity;
@@ -349,7 +349,7 @@ public class CallCard extends FrameLayout
      * Updates the main block of caller info on the CallCard
      * (ie. the stuff in the primaryCallInfo block) based on the specified Call.
      */
-    private void displayMainCallStatus(CallManager cm, Call call) {
+    protected void displayMainCallStatus(CallManager cm, Call call) {
         if (DBG) log("displayMainCallStatus(call " + call + ")...");
 
         if (call == null) {
@@ -628,7 +628,7 @@ public class CallCard extends FrameLayout
      * Updates the "call state label" and the elapsed time widget based on the
      * current state of the call.
      */
-    private void updateCallStateWidgets(Call call) {
+    protected void updateCallStateWidgets(Call call) {
         if (DBG) log("updateCallStateWidgets(call " + call + ")...");
         final Call.State state = call.getState();
         final Context context = getContext();
@@ -785,6 +785,7 @@ public class CallCard extends FrameLayout
             return;
         }
 
+        Phone phone = call.getPhone();
         boolean showSecondaryCallInfo = false;
         Call.State state = call.getState();
         switch (state) {
@@ -832,7 +833,7 @@ public class CallCard extends FrameLayout
                 // CDMA: This is because in CDMA when the user originates the second call,
                 // although the Foreground call state is still ACTIVE in reality the network
                 // put the first call on hold.
-                if (mApplication.phone.getPhoneType() == Phone.PHONE_TYPE_CDMA) {
+                if (phone.getPhoneType() == Phone.PHONE_TYPE_CDMA) {
                     List<Connection> connections = call.getConnections();
                     if (connections.size() > 2) {
                         // This means that current Mobile Originated call is the not the first 3-Way
@@ -987,7 +988,7 @@ public class CallCard extends FrameLayout
      * If the current call is a conference call, use
      * updateDisplayForConference() instead.
      */
-    private void updateDisplayForPerson(CallerInfo info,
+    protected void updateDisplayForPerson(CallerInfo info,
                                         int presentation,
                                         boolean isTemporary,
                                         Call call,
@@ -1169,7 +1170,7 @@ public class CallCard extends FrameLayout
      * If the current call has only a single connection, use
      * updateDisplayForPerson() instead.
      */
-    private void updateDisplayForConference(Call call) {
+    protected void updateDisplayForConference(Call call) {
         if (DBG) log("updateDisplayForConference()...");
 
         int phoneType = call.getPhone().getPhoneType();
@@ -1228,7 +1229,7 @@ public class CallCard extends FrameLayout
      * the generic "picture_unknown" image, or the "conference call"
      * image.)
      */
-    private void updatePhotoForCallState(Call call) {
+    protected void updatePhotoForCallState(Call call) {
         if (DBG) log("updatePhotoForCallState(" + call + ")...");
         int photoImageResource = 0;
 

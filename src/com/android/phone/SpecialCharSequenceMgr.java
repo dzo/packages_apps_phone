@@ -24,6 +24,7 @@ import android.net.Uri;
 import android.provider.Telephony.Intents;
 import com.android.internal.telephony.Phone;
 import android.telephony.PhoneNumberUtils;
+import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.view.WindowManager;
 
@@ -192,6 +193,7 @@ public class SpecialCharSequenceMgr {
         if ((input.startsWith("**04") || input.startsWith("**05"))
                 && input.endsWith("#")) {
             PhoneApp app = PhoneApp.getInstance();
+
             boolean isMMIHandled = app.phone.handlePinMmi(input);
 
             // if the PUK code is recognized then indicate to the
@@ -220,7 +222,7 @@ public class SpecialCharSequenceMgr {
     static private void showDeviceIdPanel(Context context) {
         if (DBG) log("showDeviceIdPanel()...");
 
-        Phone phone = PhoneApp.getPhone();
+        Phone phone = PhoneApp.getInstance().getPhone();
         int labelId = TelephonyCapabilities.getDeviceIdLabel(phone);
         String deviceId = phone.getDeviceId();
 

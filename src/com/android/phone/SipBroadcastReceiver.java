@@ -106,7 +106,7 @@ public class SipBroadcastReceiver extends BroadcastReceiver {
     }
 
     private void registerAllProfiles() {
-        final Context context = PhoneApp.getInstance();
+        final Context context = PhoneApp.getInstance().mContext;
         new Thread(new Runnable() {
             public void run() {
                 SipManager sipManager = SipManager.newInstance(context);

@@ -91,7 +91,7 @@ public class ChangeIccPinScreen extends Activity {
     public void onCreate(Bundle icicle) {
         super.onCreate(icicle);
 
-        mPhone = PhoneApp.getPhone();
+        mPhone = PhoneApp.getInstance().getPhone();
 
         resolveIntent();
 

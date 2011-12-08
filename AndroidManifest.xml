@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (C) 2007 The Android Open Source Project
+     Copyright (C) 2010-2011, Code Aurora Forum. All rights reserved.
 
      Licensed under the Apache License, Version 2.0 (the "License");
      you may not use this file except in compliance with the License.
@@ -132,6 +133,11 @@
                 <category android:name="android.intent.category.DEFAULT" />
                 <data android:mimeType="vnd.android.cursor.item/sim-contact" />
             </intent-filter>
+        </activity>
+
+        <activity android:name="MSimDialerActivity"
+                android:permission="android.permission.CALL_PRIVILEGED"
+                android:configChanges="orientation|keyboardHidden">
         </activity>
 
         <activity android:name="OutgoingCallBroadcaster"
@@ -412,6 +418,65 @@
             </intent-filter>
         </activity>
 
+        <!-- MSim Mobile Network Settings -->
+        <activity android:name="MSimSettings"
+                android:label="@string/settings_label"
+                android:theme="@style/Theme.Settings">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <action android:name="android.intent.action.MAIN" />
+            </intent-filter>
+        </activity>
+
+       <!-- MSim Mobile Network Settings per subscription -->
+       <activity android:name="MSimNetworkSettings"
+                android:label="@string/settings_label"
+                android:theme="@style/Theme.Settings">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <action android:name="android.intent.action.MAIN" />
+                <action android:name="android.settings.DATA_ROAMING_SETTINGS" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+
+        <!-- MSim Call Feature Settings -->
+        <activity android:name="MSimCallFeaturesSetting"
+            android:label="@string/call_settings"
+            android:configChanges="orientation|keyboardHidden"
+            android:theme="@android:style/Theme.Holo.DialogWhenLarge">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <action android:name="android.intent.action.MAIN" />
+                <action android:name="com.android.phone.CallFeaturesSetting.ADD_VOICEMAIL"/>
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+
+        <!-- MSim Call Feature Sub Settings -->
+        <activity android:name="MSimCallFeaturesSubSetting"
+            android:label="@string/call_settings"
+            android:configChanges="orientation|keyboardHidden"
+            android:theme="@android:style/Theme.Holo.DialogWhenLarge">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+
+        <!-- Select Subscription -->
+        <activity android:name="SelectSubscription"
+            android:label="@string/callind_multi_sim"
+            android:configChanges="orientation|keyboardHidden"
+            android:theme="@android:style/Theme.Holo.DialogWhenLarge">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+
         <!-- "Call settings" UI, used only on voice-capable phone devices. -->
         <activity android:name="CallFeaturesSetting"
                 android:label="@string/call_settings"
@@ -487,6 +552,15 @@
                 android:label="@string/respond_via_sms_setting_title"
                 android:configChanges="orientation|screenSize|keyboardHidden"
                 android:theme="@android:style/Theme.Holo.DialogWhenLarge">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+            </intent-filter>
+        </activity>
+
+        <activity android:name="SetSubscription"
+            android:label="@string/set_subscription"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar"
+            android:configChanges="orientation|keyboardHidden">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
             </intent-filter>

@@ -1367,7 +1367,7 @@ public class CallFeaturesSetting extends PreferenceActivity
     protected void onCreate(Bundle icicle) {
         super.onCreate(icicle);
         if (DBG) log("Creating activity");
-        mPhone = PhoneApp.getPhone();
+        mPhone = PhoneApp.getInstance().getPhone();
 
         addPreferencesFromResource(R.xml.call_feature_setting);
 

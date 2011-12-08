@@ -82,14 +82,14 @@ public class NotificationMgr implements CallerInfoAsyncQuery.OnQueryCompleteList
     static final int SELECTED_OPERATOR_FAIL_NOTIFICATION = 8;
 
     /** The singleton NotificationMgr instance. */
-    private static NotificationMgr sInstance;
+    protected static NotificationMgr sInstance;
 
-    private PhoneApp mApp;
-    private Phone mPhone;
-    private CallManager mCM;
+    protected PhoneApp mApp;
+    protected Phone mPhone;
+    protected CallManager mCM;
 
-    private Context mContext;
-    private NotificationManager mNotificationManager;
+    protected Context mContext;
+    protected NotificationManager mNotificationManager;
     private StatusBarManager mStatusBarManager;
     private Toast mToast;
     private boolean mShowingSpeakerphoneIcon;
@@ -98,36 +98,36 @@ public class NotificationMgr implements CallerInfoAsyncQuery.OnQueryCompleteList
     public StatusBarHelper statusBarHelper;
 
     // used to track the missed call counter, default to 0.
-    private int mNumberMissedCalls = 0;
+    protected int mNumberMissedCalls = 0;
 
     // Currently-displayed resource IDs for some status bar icons (or zero
     // if no notification is active):
     private int mInCallResId;
 
     // used to track the notification of selected network unavailable
-    private boolean mSelectedUnavailableNotify = false;
+    protected boolean mSelectedUnavailableNotify = false;
 
     // Retry params for the getVoiceMailNumber() call; see updateMwi().
-    private static final int MAX_VM_NUMBER_RETRIES = 5;
-    private static final int VM_NUMBER_RETRY_DELAY_MILLIS = 10000;
-    private int mVmNumberRetriesRemaining = MAX_VM_NUMBER_RETRIES;
+    static final int MAX_VM_NUMBER_RETRIES = 5;
+    static final int VM_NUMBER_RETRY_DELAY_MILLIS = 10000;
+    protected int mVmNumberRetriesRemaining = MAX_VM_NUMBER_RETRIES;
 
     // Query used to look up caller-id info for the "call log" notification.
-    private QueryHandler mQueryHandler = null;
-    private static final int CALL_LOG_TOKEN = -1;
-    private static final int CONTACT_TOKEN = -2;
+    protected QueryHandler mQueryHandler = null;
+    static final int CALL_LOG_TOKEN = -1;
+    static final int CONTACT_TOKEN = -2;
 
     /**
      * Private constructor (this is a singleton).
      * @see init()
      */
-    private NotificationMgr(PhoneApp app) {
+    protected NotificationMgr(PhoneApp app) {
         mApp = app;
-        mContext = app;
+        mContext = app.mContext;
         mNotificationManager =
-                (NotificationManager) app.getSystemService(Context.NOTIFICATION_SERVICE);
+                (NotificationManager) app.mContext.getSystemService(Context.NOTIFICATION_SERVICE);
         mStatusBarManager =
-                (StatusBarManager) app.getSystemService(Context.STATUS_BAR_SERVICE);
+                (StatusBarManager) app.mContext.getSystemService(Context.STATUS_BAR_SERVICE);
         mPhone = app.phone;  // TODO: better style to use mCM.getDefaultPhone() everywhere instead
         mCM = app.mCM;
         statusBarHelper = new StatusBarHelper();
@@ -252,7 +252,7 @@ public class NotificationMgr implements CallerInfoAsyncQuery.OnQueryCompleteList
      * Makes sure phone-related notifications are up to date on a
      * freshly-booted device.
      */
-    private void updateNotificationsAtStartup() {
+    protected void updateNotificationsAtStartup() {
         if (DBG) log("updateNotificationsAtStartup()...");
 
         // instantiate query handler
@@ -287,7 +287,7 @@ public class NotificationMgr implements CallerInfoAsyncQuery.OnQueryCompleteList
      * Class used to run asynchronous queries to re-populate
      * the notifications we care about.
      */
-    private class QueryHandler extends AsyncQueryHandler {
+    protected class QueryHandler extends AsyncQueryHandler {
 
         /**
          * Used to store relevant fields for the Missed Call
@@ -378,7 +378,7 @@ public class NotificationMgr implements CallerInfoAsyncQuery.OnQueryCompleteList
          * Factory method to generate a NotificationInfo object given a
          * cursor from the call log table.
          */
-        private final NotificationInfo getNotificationInfo(Cursor cursor) {
+        private NotificationInfo getNotificationInfo(Cursor cursor) {
             NotificationInfo n = new NotificationInfo();
             n.name = null;
             n.number = cursor.getString(cursor.getColumnIndexOrThrow(Calls.NUMBER));
@@ -405,7 +405,7 @@ public class NotificationMgr implements CallerInfoAsyncQuery.OnQueryCompleteList
      * Configures a Notification to emit the blinky green message-waiting/
      * missed-call signal.
      */
-    private static void configureLedNotification(Notification note) {
+    protected static void configureLedNotification(Notification note) {
         note.flags |= Notification.FLAG_SHOW_LIGHTS;
         note.defaults |= Notification.DEFAULT_LIGHTS;
     }
@@ -477,7 +477,7 @@ public class NotificationMgr implements CallerInfoAsyncQuery.OnQueryCompleteList
     }
 
     /** Returns an intent to be invoked when the missed call notification is cleared. */
-    private PendingIntent createClearMissedCallsIntent() {
+    protected PendingIntent createClearMissedCallsIntent() {
         Intent intent = new Intent(mContext, ClearMissedCallsService.class);
         intent.setAction(ClearMissedCallsService.ACTION_CLEAR_MISSED_CALLS);
         return PendingIntent.getService(mContext, 0, intent, 0);
@@ -489,6 +489,7 @@ public class NotificationMgr implements CallerInfoAsyncQuery.OnQueryCompleteList
      * @see ITelephony.cancelMissedCallsNotification()
      */
     void cancelMissedCallNotification() {
+        Log.w(LOG_TAG, "updateInCallNotification: null connection, can't set exp view line 1.");
         // reset the number of missed calls to 0.
         mNumberMissedCalls = 0;
         mNotificationManager.cancel(MISSED_CALL_NOTIFICATION);
@@ -523,7 +524,7 @@ public class NotificationMgr implements CallerInfoAsyncQuery.OnQueryCompleteList
     public void updateSpeakerNotification() {
         AudioManager audioManager = (AudioManager) mContext.getSystemService(Context.AUDIO_SERVICE);
         boolean showNotification =
-                (mPhone.getState() == Phone.State.OFFHOOK) && audioManager.isSpeakerphoneOn();
+                (mCM.getState() == Phone.State.OFFHOOK) && audioManager.isSpeakerphoneOn();
 
         if (DBG) log(showNotification
                      ? "updateSpeakerNotification: speaker ON"
@@ -803,7 +804,8 @@ public class NotificationMgr implements CallerInfoAsyncQuery.OnQueryCompleteList
         // call (see the "fullScreenIntent" field below).
         PendingIntent inCallPendingIntent =
                 PendingIntent.getActivity(mContext, 0,
-                                          PhoneApp.createInCallIntent(), 0);
+                                          PhoneApp.getInstance().createInCallIntent(
+                                          currentCall.getPhone().getSubscription()), 0);
         notification.contentIntent = inCallPendingIntent;
 
         // When expanded, the "Ongoing call" notification is (visually)
@@ -1223,7 +1225,7 @@ public class NotificationMgr implements CallerInfoAsyncQuery.OnQueryCompleteList
      * Display the network selection "no service" notification
      * @param operator is the numeric operator number
      */
-    private void showNetworkSelection(String operator) {
+     protected void showNetworkSelection(String operator) {
         if (DBG) log("showNetworkSelection(" + operator + ")...");
 
         String titleText = mContext.getString(
@@ -1254,7 +1256,7 @@ public class NotificationMgr implements CallerInfoAsyncQuery.OnQueryCompleteList
     /**
      * Turn off the network selection "no service" notification
      */
-    private void cancelNetworkSelection() {
+    protected void cancelNetworkSelection() {
         if (DBG) log("cancelNetworkSelection()...");
         mNotificationManager.cancel(SELECTED_OPERATOR_FAIL_NOTIFICATION);
     }

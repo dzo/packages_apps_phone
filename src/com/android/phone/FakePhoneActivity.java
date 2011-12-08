@@ -54,10 +54,10 @@ public class FakePhoneActivity extends Activity {
                     }
                 });
 
-        mRadioControl = PhoneApp.getPhone().getSimulatedRadioControl();
+        mRadioControl = PhoneApp.getInstance().getPhone().getSimulatedRadioControl();
 
         Log.i(TAG, "- PhoneApp.getInstance(): " + PhoneApp.getInstance());
-        Log.i(TAG, "- PhoneApp.getPhone(): " + PhoneApp.getPhone());
+        Log.i(TAG, "- PhoneApp.getInstance().getPhone(): " + PhoneApp.getInstance().getPhone());
         Log.i(TAG, "- mRadioControl: " + mRadioControl);
     }
 

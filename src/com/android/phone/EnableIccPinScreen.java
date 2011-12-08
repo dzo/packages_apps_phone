@@ -67,7 +67,7 @@ public class EnableIccPinScreen extends Activity {
         setContentView(R.layout.enable_sim_pin_screen);
         setupView();
 
-        mPhone = PhoneApp.getPhone();
+        mPhone = PhoneApp.getInstance().getPhone();
         mEnable = !mPhone.getIccCard().getIccLockEnabled();
 
         int id = mEnable ? R.string.enable_sim_pin : R.string.disable_sim_pin;

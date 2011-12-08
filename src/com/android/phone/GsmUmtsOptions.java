@@ -24,6 +24,8 @@ import android.preference.PreferenceScreen;
 import com.android.internal.telephony.Phone;
 import com.android.internal.telephony.PhoneFactory;
 
+import static com.android.internal.telephony.MSimConstants.SUBSCRIPTION_KEY;
+
 /**
  * List of Network-specific settings screens.
  */
@@ -39,35 +41,45 @@ public class GsmUmtsOptions {
     private static final String BUTTON_PREFER_2G_KEY = "button_prefer_2g_key";
     private PreferenceActivity mPrefActivity;
     private PreferenceScreen mPrefScreen;
+    private int mSubscription = 0;
+    private Phone mPhone;
 
     public GsmUmtsOptions(PreferenceActivity prefActivity, PreferenceScreen prefScreen) {
+        this(prefActivity,  prefScreen, 0);
+    }
+
+    public GsmUmtsOptions(PreferenceActivity prefActivity,
+            PreferenceScreen prefScreen, int subscription) {
         mPrefActivity = prefActivity;
         mPrefScreen = prefScreen;
+        mSubscription = subscription;
+        mPhone = PhoneApp.getInstance().getPhone(mSubscription);
         create();
     }
 
     protected void create() {
         mPrefActivity.addPreferencesFromResource(R.xml.gsm_umts_options);
         mButtonAPNExpand = (PreferenceScreen) mPrefScreen.findPreference(BUTTON_APN_EXPAND_KEY);
+        mButtonAPNExpand.getIntent().putExtra(SUBSCRIPTION_KEY, mSubscription);
         mButtonPrefer2g = (CheckBoxPreference) mPrefScreen.findPreference(BUTTON_PREFER_2G_KEY);
+        Use2GOnlyCheckBoxPreference.updatePhone(mPhone);
         enableScreen();
     }
 
     public void enableScreen() {
-        Phone phone = PhoneFactory.getDefaultPhone();
-        if (phone.getPhoneType() != Phone.PHONE_TYPE_GSM) {
+        if (mPhone.getPhoneType() != Phone.PHONE_TYPE_GSM) {
             log("Not a GSM phone");
             mButtonPrefer2g.setEnabled(false);
         }
-        mButtonOperatorSelectionExpand = (PreferenceScreen) mPrefScreen
-                .findPreference(BUTTON_OPERATOR_SELECTION_EXPAND_KEY);
+         mButtonOperatorSelectionExpand =
+                    (PreferenceScreen) mPrefScreen.findPreference(BUTTON_OPERATOR_SELECTION_EXPAND_KEY);
         if (mButtonOperatorSelectionExpand != null) {
-            if (phone.getPhoneType() != Phone.PHONE_TYPE_GSM) {
+            if (mPhone.getPhoneType() != Phone.PHONE_TYPE_GSM) {
                 mButtonOperatorSelectionExpand.setEnabled(false);
-            } else if (!phone.isManualNetSelAllowed()) {
+            } else if (!mPhone.isManualNetSelAllowed()) {
                 mButtonOperatorSelectionExpand.setEnabled(false);
             } else if (mPrefActivity.getResources().getBoolean(R.bool.csp_enabled)) {
-                if (phone.isCspPlmnEnabled()) {
+                if (mPhone.isCspPlmnEnabled()) {
                     log("[CSP] Enabling Operator Selection menu.");
                     mButtonOperatorSelectionExpand.setEnabled(true);
                 } else {

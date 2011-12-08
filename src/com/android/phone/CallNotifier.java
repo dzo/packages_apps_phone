@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2006 The Android Open Source Project
+ * Copyright (c) 2010-2011, Code Aurora Forum. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -79,7 +80,7 @@ public class CallNotifier extends Handler
     private static final int DISPLAYINFO_NOTIFICATION_TIME = 2000; // msec
 
     /** The singleton instance. */
-    private static CallNotifier sInstance;
+    protected static CallNotifier sInstance;
 
     // Boolean to keep track of whether or not a CDMA Call Waiting call timed out.
     //
@@ -109,17 +110,17 @@ public class CallNotifier extends Handler
     private boolean mCallWaitingTimeOut = false;
 
     // values used to track the query state
-    private static final int CALLERINFO_QUERY_READY = 0;
-    private static final int CALLERINFO_QUERYING = -1;
+    protected static final int CALLERINFO_QUERY_READY = 0;
+    protected static final int CALLERINFO_QUERYING = -1;
 
     // the state of the CallerInfo Query.
-    private int mCallerInfoQueryState;
+    protected int mCallerInfoQueryState;
 
     // object used to synchronize access to mCallerInfoQueryState
-    private Object mCallerInfoQueryStateGuard = new Object();
+    protected Object mCallerInfoQueryStateGuard = new Object();
 
     // Event used to indicate a query timeout.
-    private static final int RINGER_CUSTOM_RINGTONE_QUERY_TIMEOUT = 100;
+    protected static final int RINGER_CUSTOM_RINGTONE_QUERY_TIMEOUT = 100;
 
     // Events from the Phone object:
     private static final int PHONE_STATE_CHANGED = 1;
@@ -137,7 +138,7 @@ public class CallNotifier extends Handler
     private static final int PHONE_AUTO_ANSWER = 13;
 
     // Events generated internally:
-    private static final int PHONE_MWI_CHANGED = 21;
+    protected static final int PHONE_MWI_CHANGED = 21;
     private static final int PHONE_BATTERY_LOW = 22;
     private static final int CALLWAITING_CALLERINFO_DISPLAY_DONE = 23;
     private static final int CALLWAITING_ADDCALL_DISABLE_TIMEOUT = 24;
@@ -153,9 +154,9 @@ public class CallNotifier extends Handler
     private static final int EMERGENCY_TONE_ALERT = 1;
     private static final int EMERGENCY_TONE_VIBRATE = 2;
 
-    private PhoneApp mApplication;
-    private CallManager mCM;
-    private Ringer mRinger;
+    protected PhoneApp mApplication;
+    protected CallManager mCM;
+    protected Ringer mRinger;
     private BluetoothHandsfree mBluetoothHandsfree;
     private CallLogAsync mCallLog;
     private boolean mSilentRingerRequested;
@@ -203,13 +204,13 @@ public class CallNotifier extends Handler
     }
 
     /** Private constructor; @see init() */
-    private CallNotifier(PhoneApp app, Phone phone, Ringer ringer,
+    protected CallNotifier(PhoneApp app, Phone phone, Ringer ringer,
                          BluetoothHandsfree btMgr, CallLogAsync callLog) {
         mApplication = app;
         mCM = app.mCM;
         mCallLog = callLog;
 
-        mAudioManager = (AudioManager) mApplication.getSystemService(Context.AUDIO_SERVICE);
+        mAudioManager = (AudioManager) mApplication.mContext.getSystemService(Context.AUDIO_SERVICE);
 
         registerForNotifications();
 
@@ -223,7 +224,7 @@ public class CallNotifier extends Handler
         mRinger = ringer;
         mBluetoothHandsfree = btMgr;
 
-        TelephonyManager telephonyManager = (TelephonyManager)app.getSystemService(
+        TelephonyManager telephonyManager = (TelephonyManager)app.mContext.getSystemService(
                 Context.TELEPHONY_SERVICE);
         telephonyManager.listen(mPhoneStateListener,
                 PhoneStateListener.LISTEN_MESSAGE_WAITING_INDICATOR
@@ -379,7 +380,7 @@ public class CallNotifier extends Handler
                 if (msg.obj != null && ((AsyncResult) msg.obj).result != null) {
                     suppSvcNotification = (SuppServiceNotification)((AsyncResult) msg.obj).result;
                     String callForwardText = getSuppSvcNotificationText(suppSvcNotification);
-                    Toast.makeText(mApplication, callForwardText, Toast.LENGTH_LONG).show();
+                    Toast.makeText(mApplication.mContext, callForwardText, Toast.LENGTH_LONG).show();
                 }
                 break;
 
@@ -399,49 +400,58 @@ public class CallNotifier extends Handler
                         case SuppServiceNotification.MO_CODE_UNCONDITIONAL_CF_ACTIVE :
                             // This message is displayed when an outgoing call is made
                             // and unconditional forwarding is enabled.
-                            callForwardTxt = mApplication.getString(R.string.card_title_unconditionalCF);
+                            callForwardTxt = mApplication.mContext.getString(
+                                    R.string.card_title_unconditionalCF);
                             break;
 
                         case SuppServiceNotification.MO_CODE_SOME_CF_ACTIVE:
                             // This message is displayed when an outgoing call is made
                             // and conditional forwarding is enabled.
-                            callForwardTxt = mApplication.getString(R.string.card_title_conditionalCF);
+                            callForwardTxt = mApplication.mContext.getString(
+                                    R.string.card_title_conditionalCF);
                             break;
 
                         case SuppServiceNotification.MO_CODE_CALL_FORWARDED:
                             //This message is displayed on A when the outgoing call actually gets forwarded to C
-                            callForwardTxt = mApplication.getString(R.string.card_title_MOcall_forwarding);
+                            callForwardTxt = mApplication.mContext.getString(
+                                    R.string.card_title_MOcall_forwarding);
                             break;
 
                         case SuppServiceNotification.MO_CODE_CALL_IS_WAITING:
                             //This message is displayed on A when the B is busy on another call and Call waiting
                             //is enabled on B
-                            callForwardTxt = mApplication.getString(R.string.card_title_calliswaiting);
+                            callForwardTxt = mApplication.mContext.getString(
+                                    R.string.card_title_calliswaiting);
                             break;
 
                         case SuppServiceNotification.MO_CODE_CUG_CALL:
                             //This message is displayed on A, when A makes call to B, both A & B
                             //belong to a CUG group
-                            callForwardTxt = mApplication.getString(R.string.card_title_cugcall);
+                            callForwardTxt = mApplication.mContext.getString(
+                                    R.string.card_title_cugcall);
                             break;
                         case SuppServiceNotification.MO_CODE_OUTGOING_CALLS_BARRED:
                             //This message is displayed on A when outging is barred on A
-                            callForwardTxt = mApplication.getString(R.string.card_title_outgoing_barred);
+                            callForwardTxt = mApplication.mContext.getString(
+                                    R.string.card_title_outgoing_barred);
                             break;
 
                         case SuppServiceNotification.MO_CODE_INCOMING_CALLS_BARRED:
                             //This message is displayed on A, when A is calling B & incoming is barred on B
-                            callForwardTxt = mApplication.getString(R.string.card_title_incoming_barred);
+                            callForwardTxt = mApplication.mContext.getString(
+                                    R.string.card_title_incoming_barred);
                             break;
 
                         case SuppServiceNotification.MO_CODE_CLIR_SUPPRESSION_REJECTED:
                             //This message is displayed on A, when CLIR suppression is rejected
-                            callForwardTxt = mApplication.getString(R.string.card_title_clir_suppression_rejected);
+                            callForwardTxt = mApplication.mContext.getString(
+                                    R.string.card_title_clir_suppression_rejected);
                             break;
 
                         case SuppServiceNotification.MO_CODE_CALL_DEFLECTED:
                             //This message is displayed on A, when the outgoing call gets deflected to C from B
-                            callForwardTxt = mApplication.getString(R.string.card_title_call_deflected);
+                            callForwardTxt = mApplication.mContext.getString(
+                                    R.string.card_title_call_deflected);
                             break;
 
                         default:
@@ -454,57 +464,68 @@ public class CallNotifier extends Handler
                     switch (suppSvcNotification.code) {
                         case SuppServiceNotification.MT_CODE_FORWARDED_CALL:
                             //This message is displayed on C when the incoming call is forwarded from B
-                            callForwardTxt = mApplication.getString(R.string.card_title_forwarded_MTcall);
+                            callForwardTxt = mApplication.mContext.getString(
+                                   R.string.card_title_forwarded_MTcall);
                             break;
 
                         case SuppServiceNotification.MT_CODE_CUG_CALL:
                             //This message is displayed on B, when A makes call to B, both A & B
                             //belong to a CUG group
-                            callForwardTxt = mApplication.getString(R.string.card_title_cugcall);
+                            callForwardTxt = mApplication.mContext.getString(
+                                    R.string.card_title_cugcall);
                             break;
 
                         case SuppServiceNotification.MT_CODE_CALL_ON_HOLD:
                             //This message is displayed on B,when A makes call to B & puts it on hold
-                            callForwardTxt = mApplication.getString(R.string.card_title_callonhold);
+                            callForwardTxt = mApplication.mContext.getString
+                                    (R.string.card_title_callonhold);
                             break;
 
                         case SuppServiceNotification.MT_CODE_CALL_RETRIEVED:
                             //This message is displayed on B,when A makes call to B, puts it on hold & retrives it back.
-                            callForwardTxt = mApplication.getString(R.string.card_title_callretrieved);
+                            callForwardTxt = mApplication.mContext.getString
+                                    (R.string.card_title_callretrieved);
                             break;
 
                         case SuppServiceNotification.MT_CODE_MULTI_PARTY_CALL:
                             //This message is displayed on B when the the call is changed as multiparty
-                            callForwardTxt = mApplication.getString(R.string.card_title_multipartycall);
+                            callForwardTxt = mApplication.mContext.getString(
+                                    R.string.card_title_multipartycall);
                             break;
 
                         case SuppServiceNotification.MT_CODE_ON_HOLD_CALL_RELEASED:
                             //This message is displayed on B, when A makes call to B, puts it on hold & then releases it.
-                            callForwardTxt = mApplication.getString(R.string.card_title_callonhold_released);
+                            callForwardTxt = mApplication.mContext.getString(
+                                    R.string.card_title_callonhold_released);
                             break;
                         case SuppServiceNotification.MT_CODE_FORWARD_CHECK_RECEIVED:
                             //This message is displayed on C when the incoming call is forwarded from B
-                            callForwardTxt = mApplication.getString(R.string.card_title_forwardcheckreceived);
+                            callForwardTxt = mApplication.mContext.getString(
+                                    R.string.card_title_forwardcheckreceived);
                             break;
 
                         case SuppServiceNotification.MT_CODE_CALL_CONNECTING_ECT:
                             //This message is displayed on B,when Call is connecting through Explicit Cold Transfer
-                            callForwardTxt = mApplication.getString(R.string.card_title_callconnectingect);
+                            callForwardTxt = mApplication.mContext.getString(
+                                    R.string.card_title_callconnectingect);
                             break;
 
                         case SuppServiceNotification.MT_CODE_CALL_CONNECTED_ECT:
                             //This message is displayed on B,when Call is connected through Explicit Cold Transfer
-                            callForwardTxt = mApplication.getString(R.string.card_title_callconnectedect);
+                            callForwardTxt = mApplication.mContext.getString(
+                                    R.string.card_title_callconnectedect);
                             break;
 
                         case SuppServiceNotification.MT_CODE_DEFLECTED_CALL:
                             //This message is displayed on B when the incoming call is deflected call
-                            callForwardTxt = mApplication.getString(R.string.card_title_deflectedcall);
+                            callForwardTxt = mApplication.mContext.getString(
+                                    R.string.card_title_deflectedcall);
                             break;
 
                         case SuppServiceNotification.MT_CODE_ADDITIONAL_CALL_FORWARDED:
                             // This message is displayed on B when it is busy and the incoming call gets forwarded to C
-                            callForwardTxt = mApplication.getString(R.string.card_title_MTcall_forwarding);
+                            callForwardTxt = mApplication.mContext.getString(
+                                    R.string.card_title_MTcall_forwarding);
                             break;
 
                         default :
@@ -626,7 +647,7 @@ public class CallNotifier extends Handler
         // - don't ring for call waiting connections
         // - do this before showing the incoming call panel
         if (PhoneUtils.isRealIncomingCall(state)) {
-            int mAutoAnswer = Settings.System.getInt(mApplication.getContentResolver(),
+            int mAutoAnswer = Settings.System.getInt(mApplication.mContext.getContentResolver(),
                     Settings.System.AUTO_ANSWER_TIMEOUT, -1);
 
             // Reset Auto answer timeout
@@ -701,7 +722,7 @@ public class CallNotifier extends Handler
         }
 
         // Incoming calls are totally ignored if the device isn't provisioned yet.
-        boolean provisioned = Settings.Secure.getInt(mApplication.getContentResolver(),
+        boolean provisioned = Settings.Secure.getInt(mApplication.mContext.getContentResolver(),
             Settings.Secure.DEVICE_PROVISIONED, 0) != 0;
         if (!provisioned) {
             Log.i(LOG_TAG, "Ignoring incoming call: not provisioned");
@@ -763,7 +784,7 @@ public class CallNotifier extends Handler
 
             // query the callerinfo to try to get the ringer.
             PhoneUtils.CallerInfoToken cit = PhoneUtils.startGetCallerInfo(
-                    mApplication, c, this, this);
+                    mApplication.mContext, c, this, this);
 
             // if this has already been queried then just ring, otherwise
             // we wait for the alloted time before ringing.
@@ -811,7 +832,7 @@ public class CallNotifier extends Handler
      * (We still tell the Ringer to start, but it's going to use the
      * default ringtone.)
      */
-    private void onCustomRingQueryComplete() {
+    protected void onCustomRingQueryComplete() {
         boolean isQueryExecutionTimeExpired = false;
         synchronized (mCallerInfoQueryStateGuard) {
             if (mCallerInfoQueryState == CALLERINFO_QUERYING) {
@@ -1030,7 +1051,7 @@ public class CallNotifier extends Handler
         if (fgPhone.getPhoneType() == Phone.PHONE_TYPE_CDMA) {
             Connection c = fgPhone.getForegroundCall().getLatestConnection();
             if ((c != null) && (PhoneNumberUtils.isLocalEmergencyNumber(c.getAddress(),
-                                                                        mApplication))) {
+                                                                        mApplication.mContext))) {
                 if (VDBG) log("onPhoneStateChanged: it is an emergency call.");
                 Call.State callState = fgPhone.getForegroundCall().getState();
                 if (mEmergencyTonePlayerVibrator == null) {
@@ -1039,7 +1060,7 @@ public class CallNotifier extends Handler
 
                 if (callState == Call.State.DIALING || callState == Call.State.ALERTING) {
                     mIsEmergencyToneOn = Settings.System.getInt(
-                            mApplication.getContentResolver(),
+                            mApplication.mContext.getContentResolver(),
                             Settings.System.EMERGENCY_TONE, EMERGENCY_TONE_OFF);
                     if (mIsEmergencyToneOn != EMERGENCY_TONE_OFF &&
                         mCurrentEmergencyToneState == EMERGENCY_TONE_OFF) {
@@ -1197,7 +1218,7 @@ public class CallNotifier extends Handler
 
         int autoretrySetting = 0;
         if ((c != null) && (c.getCall().getPhone().getPhoneType() == Phone.PHONE_TYPE_CDMA)) {
-            autoretrySetting = android.provider.Settings.System.getInt(mApplication.
+            autoretrySetting = android.provider.Settings.System.getInt(mApplication.mContext.
                     getContentResolver(),android.provider.Settings.System.CALL_AUTO_RETRY, 0);
         }
 
@@ -1331,7 +1352,7 @@ public class CallNotifier extends Handler
             // ended" state.)
             if (!mApplication.isShowingCallScreen()) {
                 if (VDBG) log("onDisconnect: force InCallScreen to finish()");
-                mApplication.dismissCallScreen();
+                mApplication.dismissCallScreen(c.getCall().getPhone());
             } else {
                 if (VDBG) log("onDisconnect: In call screen. Set short timeout.");
                 mApplication.clearUserActivityTimeout();
@@ -1345,7 +1366,7 @@ public class CallNotifier extends Handler
             final Connection.DisconnectCause cause = c.getDisconnectCause();
             final Phone phone = c.getCall().getPhone();
             final boolean isEmergencyNumber =
-                    PhoneNumberUtils.isLocalEmergencyNumber(number, mApplication);
+                    PhoneNumberUtils.isLocalEmergencyNumber(number, mApplication.mContext);
             // Set the "type" to be displayed in the call log (see constants in CallLog.Calls)
             final int callLogType;
             if (c.isIncoming()) {
@@ -1384,7 +1405,7 @@ public class CallNotifier extends Handler
                 // the Call Log.  (This behavior is set on a per-product
                 // basis, based on carrier requirements.)
                 final boolean okToLogEmergencyNumber =
-                        mApplication.getResources().getBoolean(
+                        mApplication.mContext.getResources().getBoolean(
                                 R.bool.allow_emergency_numbers_in_call_log);
 
                 // Don't call isOtaSpNumber() on phones that don't support OTASP.
@@ -1400,7 +1421,7 @@ public class CallNotifier extends Handler
                 if (okToLogThisCall) {
                     CallLogAsync.AddCallArgs args =
                             new CallLogAsync.AddCallArgs(
-                                mApplication, ci, logNumber, presentation,
+                                mApplication.mContext, ci, logNumber, presentation,
                                 callLogType, date, duration);
                     mCallLog.addCall(args);
                 }
@@ -1458,7 +1479,8 @@ public class CallNotifier extends Handler
                     if (autoretrySetting == InCallScreen.AUTO_RETRY_ON) {
                         // TODO: (Moto): The contact reference data may need to be stored and use
                         // here when redialing a call. For now, pass in NULL as the URI parameter.
-                        PhoneUtils.placeCall(mApplication, phone, number, null, false, null);
+                        PhoneUtils.placeCall(mApplication.mContext,
+                                phone, number, null, false, null);
                         mIsCdmaRedialCall = true;
                     } else {
                         mIsCdmaRedialCall = false;
@@ -1482,7 +1504,7 @@ public class CallNotifier extends Handler
 
         // call turnOnSpeaker() with state=false and store=true even if speaker
         // is already off to reset user requested speaker state.
-        PhoneUtils.turnOnSpeaker(mApplication, false, true);
+        PhoneUtils.turnOnSpeaker(mApplication.mContext, false, true);
 
         PhoneUtils.setAudioMode(mCM);
     }
@@ -1514,7 +1536,7 @@ public class CallNotifier extends Handler
         sendMessageDelayed(message, delayMillis);
     }
 
-    private void onCfiChanged(boolean visible) {
+    protected void onCfiChanged(boolean visible) {
         if (VDBG) log("onCfiChanged(): " + visible);
         mApplication.notificationMgr.updateCfi(visible);
     }
@@ -1862,7 +1884,7 @@ public class CallNotifier extends Handler
         if (displayInfoRec != null) {
             String displayInfo = displayInfoRec.alpha;
             if (DBG) log("onDisplayInfo: displayInfo=" + displayInfo);
-            CdmaDisplayInfo.displayInfoRecord(mApplication, displayInfo);
+            CdmaDisplayInfo.displayInfoRecord(mApplication.mContext, displayInfo);
 
             // start a 2 second timer
             sendEmptyMessageDelayed(DISPLAYINFO_NOTIFICATION_DONE,
@@ -2046,14 +2068,14 @@ public class CallNotifier extends Handler
                 // Do final CNAP modifications of logNumber prior to logging [mimicking
                 // onDisconnect()]
                 final String logNumber = PhoneUtils.modifyForSpecialCnapCases(
-                        mApplication, ci, number, presentation);
+                        mApplication.mContext, ci, number, presentation);
                 final int newPresentation = (ci != null) ? ci.numberPresentation : presentation;
                 if (DBG) log("- onCdmaCallWaitingReject(): logNumber set to: " + logNumber
                         + ", newPresentation value is: " + newPresentation);
 
                 CallLogAsync.AddCallArgs args =
                         new CallLogAsync.AddCallArgs(
-                            mApplication, ci, logNumber, presentation,
+                            mApplication.mContext, ci, logNumber, presentation,
                             callLogType, date, duration);
 
                 mCallLog.addCall(args);
@@ -2099,9 +2121,9 @@ public class CallNotifier extends Handler
     /**
      * Helper function used to show a missed call notification.
      */
-    private void showMissedCallNotification(Connection c, final long date) {
+    void showMissedCallNotification(Connection c, final long date) {
         PhoneUtils.CallerInfoToken info =
-            PhoneUtils.startGetCallerInfo(mApplication, c, this, Long.valueOf(date));
+            PhoneUtils.startGetCallerInfo(mApplication.mContext, c, this, Long.valueOf(date));
         if (info != null) {
             // at this point, we've requested to start a query, but it makes no
             // sense to log this missed call until the query comes back.
@@ -2117,11 +2139,11 @@ public class CallNotifier extends Handler
                 String name = ci.name;
                 String number = ci.phoneNumber;
                 if (ci.numberPresentation == Connection.PRESENTATION_RESTRICTED) {
-                    name = mApplication.getString(R.string.private_num);
+                    name = mApplication.mContext.getString(R.string.private_num);
                 } else if (ci.numberPresentation != Connection.PRESENTATION_ALLOWED) {
-                    name = mApplication.getString(R.string.unknown);
+                    name = mApplication.mContext.getString(R.string.unknown);
                 } else {
-                    number = PhoneUtils.modifyForSpecialCnapCases(mApplication,
+                    number = PhoneUtils.modifyForSpecialCnapCases(mApplication.mContext,
                             ci, number, ci.numberPresentation);
                 }
                 mApplication.notificationMgr.notifyMissedCall(name, number,
@@ -2278,7 +2300,7 @@ public class CallNotifier extends Handler
             int presentation = conn.getNumberPresentation();
 
             // Do final CNAP modifications.
-            number = PhoneUtils.modifyForSpecialCnapCases(mApplication, callerInfo,
+            number = PhoneUtils.modifyForSpecialCnapCases(mApplication.mContext, callerInfo,
                                                           number, presentation);
             if (!PhoneNumberUtils.isUriNumber(number)) {
                 number = PhoneNumberUtils.stripSeparators(number);

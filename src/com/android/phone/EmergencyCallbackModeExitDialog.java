@@ -43,6 +43,8 @@ import com.android.internal.telephony.Phone;
 import com.android.internal.telephony.TelephonyIntents;
 import com.android.internal.telephony.TelephonyProperties;
 
+import static com.android.internal.telephony.MSimConstants.SUBSCRIPTION_KEY;
+
 /**
  * Displays dialog that enables users to exit Emergency Callback Mode
  *
@@ -76,6 +78,8 @@ public class EmergencyCallbackModeExitDialog extends Activity implements OnDismi
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        PhoneApp app = PhoneApp.getInstance();
+
         // Check if phone is in Emergency Callback Mode. If not, exit.
         if (!Boolean.parseBoolean(
                     SystemProperties.get(TelephonyProperties.PROPERTY_INECM_MODE))) {
@@ -90,8 +94,9 @@ public class EmergencyCallbackModeExitDialog extends Activity implements OnDismi
                 "EcmExitDialogWaitThread");
         waitForConnectionCompleteThread.start();
 
+        int subscription = getIntent().getIntExtra(SUBSCRIPTION_KEY, app.getDefaultSubscription());
         // Register ECM timer reset notfication
-        mPhone = PhoneApp.getPhone();
+        mPhone = app.getPhone(subscription);
         mPhone.registerForEcmTimerReset(mTimerResetHandler, ECM_TIMER_RESET, null);
 
         // Register receiver for intent closing the dialog

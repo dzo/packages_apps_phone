@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2006 The Android Open Source Project
+ * Copyright (c) 2010-2011, Code Aurora Forum. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,6 +50,8 @@ import android.widget.Toast;
 import com.android.internal.telephony.Phone;
 import com.android.internal.telephony.PhoneFactory;
 
+import static com.android.internal.telephony.MSimConstants.SUBSCRIPTION_KEY;
+
 /**
  * Activity to let the user add or edit an FDN contact.
  */
@@ -64,6 +67,9 @@ public class EditFdnContactScreen extends Activity {
     private static final String INTENT_EXTRA_NUMBER = "number";
 
     private static final int PIN2_REQUEST_CODE = 100;
+    private static final int SUB1 = 0;
+    private static final int SUB2 = 1;
+    private static int mSubscription = 0;
 
     private String mName;
     private String mNumber;
@@ -121,6 +127,7 @@ public class EditFdnContactScreen extends Activity {
     protected void onActivityResult(int requestCode, int resultCode,
                                     Intent intent) {
         if (DBG) log("onActivityResult request:" + requestCode + " result:" + resultCode);
+        mSubscription = getIntent().getIntExtra(SUBSCRIPTION_KEY, 0);
 
         switch (requestCode) {
             case PIN2_REQUEST_CODE:
@@ -258,7 +265,15 @@ public class EditFdnContactScreen extends Activity {
     }
 
     private Uri getContentURI() {
-        return Uri.parse("content://icc/fdn");
+        if (mSubscription == SUB1) {
+            return Uri.parse("content://icc/fdn");
+        } else if (mSubscription == SUB2) {
+            return Uri.parse("content://icc/fdn_sub2");
+        } else {
+            // we should never reach here.
+            if (DBG) log("invalid mSubscription");
+            return null;
+        }
     }
 
     /**
@@ -280,11 +295,11 @@ public class EditFdnContactScreen extends Activity {
 
         Uri uri = getContentURI();
 
-        ContentValues bundle = new ContentValues(3);
+        ContentValues bundle = new ContentValues(4);
         bundle.put("tag", getNameFromTextField());
         bundle.put("number", getNumberFromTextField());
         bundle.put("pin2", mPin2);
-
+        bundle.put(SUBSCRIPTION_KEY, mSubscription);
 
         mQueryHandler = new QueryHandler(getContentResolver());
         mQueryHandler.startInsert(0, null, uri, bundle);

@@ -67,7 +67,7 @@ public class EnableFdnScreen extends Activity {
         setContentView(R.layout.enable_fdn_screen);
         setupView();
 
-        mPhone = PhoneApp.getPhone();
+        mPhone = PhoneApp.getInstance().getPhone();
         mEnable = !mPhone.getIccCard().getIccFdnEnabled();
 
         int id = mEnable ? R.string.enable_fdn : R.string.disable_fdn;
@@ -77,7 +77,7 @@ public class EnableFdnScreen extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
-        mPhone = PhoneApp.getPhone();
+        mPhone = PhoneApp.getInstance().getPhone();
     }
 
     private void setupView() {
