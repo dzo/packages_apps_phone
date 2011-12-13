@@ -387,9 +387,7 @@ public class NetworkSetting extends PreferenceActivity
         // update the state of the preferences.
         if (DBG) log("hideProgressPanel");
 
-        if (mIsForeground) {
-            dismissDialog(DIALOG_NETWORK_LIST_LOAD);
-        }
+        dismissDialog(DIALOG_NETWORK_LIST_LOAD);
 
         getPreferenceScreen().setEnabled(true);
         clearList();
