@@ -196,6 +196,9 @@ public class BluetoothHandsfree {
     // Voice Recognition - true if Voice Recognition is active, false otherwise
     private boolean mVoiceRecognitionStarted;
 
+    // is CHLD=1 command active from the remote side, as the call status
+    // updates are different here need specific hanlding.
+    private boolean mIsChld1Command;
 
     public static String typeToString(int type) {
         switch (type) {
@@ -266,6 +269,7 @@ public class BluetoothHandsfree {
         mUserWantsAudio = true;
         mVirtualCallStarted = false;
         mVoiceRecognitionStarted = false;
+        mIsChld1Command = false;
         mPhonebook = new BluetoothAtPhonebook(mContext, this);
         mAudioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
         cdmaSetSecondCallState(false);
@@ -1150,6 +1154,13 @@ public class BluetoothHandsfree {
                 break;
             }
 
+            if (mIsChld1Command == true) {
+                if (callsetup == 1 && call ==0 && mCall ==1) {
+                    call = mCall; // expecting callsetup to go zero itself
+                } else if (callsetup == 0) {
+                    mIsChld1Command = false; // completed the process
+                }
+            }
             if (mCall != call) {
                 if (call == 1) {
                     // This means that a call has transitioned from NOT ACTIVE to ACTIVE.
@@ -2487,6 +2498,7 @@ public class BluetoothHandsfree {
                             // Hangup active call, answer held call
                             if (PhoneUtils.answerAndEndActive(
                                     PhoneApp.getInstance().mCM, ringingCall)) {
+                                mIsChld1Command = true;
                                 return new AtCommandResult(AtCommandResult.OK);
                             } else {
                                 return new AtCommandResult(AtCommandResult.ERROR);
