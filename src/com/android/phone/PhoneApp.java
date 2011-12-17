@@ -269,7 +269,7 @@ public class PhoneApp extends Application implements AccelerometerListener.Orien
                     break;
 
                 case EVENT_PERSO_LOCKED:
-                    if (getResources().getBoolean(R.bool.ignore_sim_perso_locked_events)) {
+                    if (mContext.getResources().getBoolean(R.bool.ignore_sim_perso_locked_events)) {
                         // Some products don't have the concept of a "SIM network lock"
                         Log.i(LOG_TAG, "Ignoring EVENT_PERSO_LOCKED event; "
                               + "not showing 'SIM network unlock' PIN entry screen");
@@ -1705,7 +1705,7 @@ public class PhoneApp extends Application implements AccelerometerListener.Orien
 
             Intent ttyModeChanged = new Intent(TtyIntent.TTY_ENABLED_CHANGE_ACTION);
             ttyModeChanged.putExtra("ttyEnabled", ttymode != Phone.TTY_MODE_OFF);
-            sendBroadcast(ttyModeChanged);
+            mContext.sendBroadcast(ttyModeChanged);
         }
     }
 
