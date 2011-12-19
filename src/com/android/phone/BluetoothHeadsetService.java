@@ -329,12 +329,16 @@ public class BluetoothHeadsetService extends Service {
 
     private static final int CONNECT_HEADSET_DELAYED = 1;
     private static final int MESSAGE_SLC_TIMEOUT = 2;
+    private static final int SEND_CONNECTION_STATE_CHANGE = 3;
     private Handler mHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
+            BluetoothDevice device = null;
             switch (msg.what) {
                 case CONNECT_HEADSET_DELAYED:
-                    BluetoothDevice device = (BluetoothDevice) msg.obj;
+                    device = (BluetoothDevice) msg.obj;
+                    if (device == null)
+                        return;
                     getSdpRecordsAndConnect(device);
                     break;
                 case MESSAGE_SLC_TIMEOUT:
@@ -347,6 +351,24 @@ public class BluetoothHeadsetService extends Service {
                        return;  // stale events
                     }
                     setState(sdevice, BluetoothProfile.STATE_CONNECTED);
+                    break;
+                case SEND_CONNECTION_STATE_CHANGE:
+                    device = (BluetoothDevice) msg.obj;
+                    if (device == null)
+                        return;
+                    int prevState = (int) msg.arg1;
+                    int state = mRemoteHeadsets.get(device).mState;
+                    log("prevstate was " + prevState + ", curstate is" + state);
+                    if (state == prevState) {
+                        return;
+                    }
+                    try {
+                        mBluetoothService.sendConnectionStateChange(device,
+                                                            BluetoothProfile.HEADSET,
+                                                            state, prevState);
+                    } catch (RemoteException e) {
+                        Log.e(TAG, "sendConnectionStateChange: exception");
+                    }
                     break;
             }
         }
@@ -539,12 +561,11 @@ public class BluetoothHeadsetService extends Service {
                 setPriority(device, BluetoothHeadset.PRIORITY_AUTO_CONNECT);
                 adjustOtherHeadsetPriorities(device);
             }
-            try {
-                mBluetoothService.sendConnectionStateChange(device, BluetoothProfile.HEADSET,
-                                                            state, prevState);
-            } catch (RemoteException e) {
-                Log.e(TAG, "sendConnectionStateChange: exception");
-            }
+            Message msg = new Message();
+            msg.what = SEND_CONNECTION_STATE_CHANGE;
+            msg.obj = device;
+            msg.arg1 = prevState;
+            mHandler.sendMessage(msg);
        }
     }
 
