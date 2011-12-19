@@ -257,7 +257,6 @@ public class MSimCallCard extends CallCard {
                         ci.cnapName = conn.getCnapName();
                         ci.numberPresentation = conn.getNumberPresentation();
                         ci.namePresentation = conn.getCnapNamePresentation();
-                        ci.phoneNumber = conn.getAddress();
                         if (DBG) log("- displayMainCallStatus: CNAP data from Connection: "
                                 + "CNAP name=" + ci.cnapName
                                 + ", Number/Name Presentation=" + ci.numberPresentation
