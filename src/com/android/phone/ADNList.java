@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2007 The Android Open Source Project
- * Copyright (c) 2010-2011, Code Aurora Forum. All rights reserved.
+ * Copyright (c) 2011-2012, Code Aurora Forum. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -70,10 +70,10 @@ public class ADNList extends ListActivity {
     protected CursorAdapter mCursorAdapter;
     protected Cursor mCursor = null;
 
+    private int mSubscription = 0;
     private TextView mEmptyText;
 
     protected int mInitialSelection = -1;
-    protected int mSubscription = 0;
 
     @Override
     protected void onCreate(Bundle icicle) {
@@ -100,14 +100,20 @@ public class ADNList extends ListActivity {
 
     protected Uri resolveIntent() {
         Intent intent = getIntent();
-        mSubscription = MSimTelephonyManager.getDefault().getPreferredVoiceSubscription();
-        if (intent.getData() == null) {
-            if (mSubscription == SUB1) {
+        if (MSimTelephonyManager.getDefault().isMultiSimEnabled()) {
+            mSubscription = MSimTelephonyManager.getDefault().getPreferredVoiceSubscription();
+            if (intent.getData() == null) {
+                if (mSubscription == SUB1) {
+                    intent.setData(Uri.parse("content://iccmsim/adn"));
+                } else if (mSubscription == SUB2) {
+                    intent.setData(Uri.parse("content://iccmsim/adn_sub2"));
+                } else {
+                    if (DBG) log("resolveIntent: invalid subscription");
+                }
+            }
+        } else {
+            if (intent.getData() == null) {
                 intent.setData(Uri.parse("content://icc/adn"));
-            } else if (mSubscription == SUB2) {
-                intent.setData(Uri.parse("content://icc/adn_sub2"));
-            } else {
-                if (DBG) log("resolveIntent: invalid subscription");
             }
         }
 

@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2006 The Android Open Source Project
- * Copyright (c) 2011 Code Aurora Forum. All rights reserved.
+ * Copyright (c) 2011-2012, Code Aurora Forum. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -317,7 +317,7 @@ public class MSimPhoneApp extends PhoneApp {
         }
 
         // XXX pre-load the SimProvider so that it's ready
-        resolver.getType(Uri.parse("content://icc/adn"));
+        resolver.getType(Uri.parse("content://iccmsim/adn"));
 
         // start with the default value to set the mute state.
         mShouldRestoreMuteOnInCallResume = false;

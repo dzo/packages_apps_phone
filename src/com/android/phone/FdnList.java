@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2007 The Android Open Source Project
- * Copyright (c) 2010-2011, Code Aurora Forum. All rights reserved
+ * Copyright (c) 2010-2012, Code Aurora Forum. All rights reserved
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,8 +28,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.ListView;
 
-import static com.android.internal.telephony.MSimConstants.SUBSCRIPTION_KEY;
-
 /**
  * FDN List UI for the Phone app.
  */
@@ -37,12 +35,9 @@ public class FdnList extends ADNList {
     private static final int MENU_ADD = 1;
     private static final int MENU_EDIT = 2;
     private static final int MENU_DELETE = 3;
-    private static final int SUB1 = 0;
-    private static final int SUB2 = 1;
-    private static int mSubscription = 0;
 
-    private static final String INTENT_EXTRA_NAME = "name";
-    private static final String INTENT_EXTRA_NUMBER = "number";
+    protected static final String INTENT_EXTRA_NAME = "name";
+    protected static final String INTENT_EXTRA_NUMBER = "number";
 
     private static final boolean DBG = false;
 
@@ -60,15 +55,7 @@ public class FdnList extends ADNList {
     @Override
     protected Uri resolveIntent() {
         Intent intent = getIntent();
-        mSubscription = getIntent().getIntExtra(SUBSCRIPTION_KEY, 0);
-        if (mSubscription == SUB1) {
-            intent.setData(Uri.parse("content://icc/fdn"));
-        } else if (mSubscription == SUB2) {
-            intent.setData(Uri.parse("content://icc/fdn_sub2"));
-        } else {
-            // we should never reach here.
-            if (DBG) log("invalid mSubscription");
-        }
+        intent.setData(Uri.parse("content://icc/fdn"));
         return intent.getData();
     }
 
@@ -133,11 +120,10 @@ public class FdnList extends ADNList {
         editSelected(position);
     }
 
-    private void addContact() {
+    protected void addContact() {
         // if we don't put extras "name" when starting this activity, then
         // EditFdnContactScreen treats it like add contact.
         Intent intent = new Intent();
-        intent.putExtra(SUBSCRIPTION_KEY, mSubscription);
         intent.setClass(this, EditFdnContactScreen.class);
         startActivity(intent);
     }
@@ -155,13 +141,12 @@ public class FdnList extends ADNList {
     /**
      * Edit the item at the selected position in the list.
      */
-    private void editSelected(int position) {
+    protected void editSelected(int position) {
         if (mCursor.moveToPosition(position)) {
             String name = mCursor.getString(NAME_COLUMN);
             String number = mCursor.getString(NUMBER_COLUMN);
 
             Intent intent = new Intent();
-            intent.putExtra(SUBSCRIPTION_KEY, mSubscription);
             intent.setClass(this, EditFdnContactScreen.class);
             intent.putExtra(INTENT_EXTRA_NAME, name);
             intent.putExtra(INTENT_EXTRA_NUMBER, number);
@@ -169,17 +154,21 @@ public class FdnList extends ADNList {
         }
     }
 
-    private void deleteSelected() {
+    protected void deleteSelected() {
         if (mCursor.moveToPosition(getSelectedItemPosition())) {
             String name = mCursor.getString(NAME_COLUMN);
             String number = mCursor.getString(NUMBER_COLUMN);
 
             Intent intent = new Intent();
-            intent.putExtra(SUBSCRIPTION_KEY, mSubscription);
             intent.setClass(this, DeleteFdnContactScreen.class);
             intent.putExtra(INTENT_EXTRA_NAME, name);
             intent.putExtra(INTENT_EXTRA_NUMBER, number);
             startActivity(intent);
         }
+    }
+
+    @Override
+    protected void log(String msg) {
+        Log.d(TAG, "[FdnList] " + msg);
     }
 }

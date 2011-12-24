@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2006 The Android Open Source Project
- * Copyright (c) 2010-2011, Code Aurora Forum. All rights reserved.
+ * Copyright (c) 2011-2012, Code Aurora Forum. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,7 +32,6 @@ import android.widget.Toast;
 
 import static android.view.Window.PROGRESS_VISIBILITY_OFF;
 import static android.view.Window.PROGRESS_VISIBILITY_ON;
-import static com.android.internal.telephony.MSimConstants.SUBSCRIPTION_KEY;
 
 /**
  * Activity to let the user delete an FDN contact.
@@ -41,17 +40,14 @@ public class DeleteFdnContactScreen extends Activity {
     private static final String LOG_TAG = PhoneApp.LOG_TAG;
     private static final boolean DBG = false;
 
-    private static final String INTENT_EXTRA_NAME = "name";
-    private static final String INTENT_EXTRA_NUMBER = "number";
+    protected static final String INTENT_EXTRA_NAME = "name";
+    protected static final String INTENT_EXTRA_NUMBER = "number";
 
-    private static final int PIN2_REQUEST_CODE = 100;
-    private static final int SUB1 = 0;
-    private static final int SUB2 = 1;
-    private static int mSubscription = 0;
+    protected static final int PIN2_REQUEST_CODE = 100;
 
-    private String mName;
-    private String mNumber;
-    private String mPin2;
+    protected String mName;
+    protected String mNumber;
+    protected String mPin2;
 
     protected QueryHandler mQueryHandler;
 
@@ -73,7 +69,6 @@ public class DeleteFdnContactScreen extends Activity {
     protected void onActivityResult(int requestCode, int resultCode,
                                     Intent intent) {
         if (DBG) log("onActivityResult");
-        mSubscription = getIntent().getIntExtra(SUBSCRIPTION_KEY, 0);
 
         switch (requestCode) {
             case PIN2_REQUEST_CODE:
@@ -93,7 +88,7 @@ public class DeleteFdnContactScreen extends Activity {
         }
     }
 
-    private void resolveIntent() {
+    protected void resolveIntent() {
         Intent intent = getIntent();
 
         mName =  intent.getStringExtra(INTENT_EXTRA_NAME);
@@ -104,7 +99,7 @@ public class DeleteFdnContactScreen extends Activity {
         }
     }
 
-    private void deleteContact() {
+    protected void deleteContact() {
         StringBuilder buf = new StringBuilder();
         if (TextUtils.isEmpty(mName)) {
             buf.append("number='");
@@ -118,16 +113,7 @@ public class DeleteFdnContactScreen extends Activity {
         buf.append(mPin2);
         buf.append("'");
 
-        Uri uri = null;
-        if (mSubscription == SUB1) {
-            uri = Uri.parse("content://icc/fdn");
-        } else if (mSubscription == SUB2) {
-            uri = Uri.parse("content://icc/fdn_sub2");
-        } else {
-            // we should never reach here.
-            if (DBG) log("invalid mSubscription") ;
-            return;
-        }
+        Uri uri = Uri.parse("content://icc/fdn");
 
         mQueryHandler = new QueryHandler(getContentResolver());
         mQueryHandler.startDelete(0, null, uri, buf.toString(), null);
@@ -140,7 +126,7 @@ public class DeleteFdnContactScreen extends Activity {
         startActivityForResult(intent, PIN2_REQUEST_CODE);
     }
 
-    private void displayProgress(boolean flag) {
+    protected void displayProgress(boolean flag) {
         getWindow().setFeatureInt(
                 Window.FEATURE_INDETERMINATE_PROGRESS,
                 flag ? PROGRESS_VISIBILITY_ON : PROGRESS_VISIBILITY_OFF);
@@ -148,7 +134,7 @@ public class DeleteFdnContactScreen extends Activity {
 
     // Replace the status field with a toast to make things appear similar
     // to the rest of the settings.  Removed the useless status field.
-    private void showStatus(CharSequence statusMsg) {
+    protected void showStatus(CharSequence statusMsg) {
         if (statusMsg != null) {
             Toast.makeText(this, statusMsg, Toast.LENGTH_SHORT)
             .show();
@@ -172,7 +158,7 @@ public class DeleteFdnContactScreen extends Activity {
 
     }
 
-    private class QueryHandler extends AsyncQueryHandler {
+    protected class QueryHandler extends AsyncQueryHandler {
         public QueryHandler(ContentResolver cr) {
             super(cr);
         }
@@ -196,7 +182,7 @@ public class DeleteFdnContactScreen extends Activity {
 
     }
 
-    private void log(String msg) {
+    protected void log(String msg) {
         Log.d(LOG_TAG, "[DeleteFdnContact] " + msg);
     }
 }

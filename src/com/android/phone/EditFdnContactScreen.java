@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2006 The Android Open Source Project
- * Copyright (c) 2010-2011, Code Aurora Forum. All rights reserved.
+ * Copyright (c) 2010-2012, Code Aurora Forum. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,8 +50,6 @@ import android.widget.Toast;
 import com.android.internal.telephony.Phone;
 import com.android.internal.telephony.PhoneFactory;
 
-import static com.android.internal.telephony.MSimConstants.SUBSCRIPTION_KEY;
-
 /**
  * Activity to let the user add or edit an FDN contact.
  */
@@ -63,22 +61,19 @@ public class EditFdnContactScreen extends Activity {
     private static final int MENU_IMPORT = 1;
     private static final int MENU_DELETE = 2;
 
-    private static final String INTENT_EXTRA_NAME = "name";
-    private static final String INTENT_EXTRA_NUMBER = "number";
+    protected static final String INTENT_EXTRA_NAME = "name";
+    protected static final String INTENT_EXTRA_NUMBER = "number";
 
-    private static final int PIN2_REQUEST_CODE = 100;
-    private static final int SUB1 = 0;
-    private static final int SUB2 = 1;
-    private static int mSubscription = 0;
+    protected static final int PIN2_REQUEST_CODE = 100;
 
-    private String mName;
-    private String mNumber;
-    private String mPin2;
-    private boolean mAddContact;
-    private QueryHandler mQueryHandler;
+    protected String mName;
+    protected String mNumber;
+    protected String mPin2;
+    protected boolean mAddContact;
+    protected QueryHandler mQueryHandler;
 
-    private EditText mNameField;
-    private EditText mNumberField;
+    protected EditText mNameField;
+    protected EditText mNumberField;
     private LinearLayout mPinFieldContainer;
     private Button mButton;
 
@@ -88,9 +83,9 @@ public class EditFdnContactScreen extends Activity {
      * Constants used in importing from contacts
      */
     /** request code when invoking subactivity */
-    private static final int CONTACTS_PICKER_CODE = 200;
+    protected static final int CONTACTS_PICKER_CODE = 200;
     /** projection for phone number query */
-    private static final String NUM_PROJECTION[] = {PeopleColumns.DISPLAY_NAME,
+    protected static final String NUM_PROJECTION[] = {PeopleColumns.DISPLAY_NAME,
         PhonesColumns.NUMBER};
     /** static intent to invoke phone number picker */
     private static final Intent CONTACT_IMPORT_INTENT;
@@ -127,7 +122,6 @@ public class EditFdnContactScreen extends Activity {
     protected void onActivityResult(int requestCode, int resultCode,
                                     Intent intent) {
         if (DBG) log("onActivityResult request:" + requestCode + " result:" + resultCode);
-        mSubscription = getIntent().getIntExtra(SUBSCRIPTION_KEY, 0);
 
         switch (requestCode) {
             case PIN2_REQUEST_CODE:
@@ -209,7 +203,7 @@ public class EditFdnContactScreen extends Activity {
         return super.onOptionsItemSelected(item);
     }
 
-    private void resolveIntent() {
+    protected void resolveIntent() {
         Intent intent = getIntent();
 
         mName =  intent.getStringExtra(INTENT_EXTRA_NAME);
@@ -256,36 +250,28 @@ public class EditFdnContactScreen extends Activity {
 
     }
 
-    private String getNameFromTextField() {
+    protected String getNameFromTextField() {
         return mNameField.getText().toString();
     }
 
-    private String getNumberFromTextField() {
+    protected String getNumberFromTextField() {
         return mNumberField.getText().toString();
     }
 
-    private Uri getContentURI() {
-        if (mSubscription == SUB1) {
-            return Uri.parse("content://icc/fdn");
-        } else if (mSubscription == SUB2) {
-            return Uri.parse("content://icc/fdn_sub2");
-        } else {
-            // we should never reach here.
-            if (DBG) log("invalid mSubscription");
-            return null;
-        }
+    protected Uri getContentURI() {
+        return Uri.parse("content://icc/fdn");
     }
 
     /**
       * @param number is voice mail number
       * @return true if number length is less than 20-digit limit
       */
-     private boolean isValidNumber(String number) {
+     protected boolean isValidNumber(String number) {
          return (number.length() <= 20);
      }
 
 
-    private void addContact() {
+    protected void addContact() {
         if (DBG) log("addContact");
 
         if (!isValidNumber(getNumberFromTextField())) {
@@ -295,11 +281,10 @@ public class EditFdnContactScreen extends Activity {
 
         Uri uri = getContentURI();
 
-        ContentValues bundle = new ContentValues(4);
+        ContentValues bundle = new ContentValues(3);
         bundle.put("tag", getNameFromTextField());
         bundle.put("number", getNumberFromTextField());
         bundle.put("pin2", mPin2);
-        bundle.put(SUBSCRIPTION_KEY, mSubscription);
 
         mQueryHandler = new QueryHandler(getContentResolver());
         mQueryHandler.startInsert(0, null, uri, bundle);
@@ -307,7 +292,7 @@ public class EditFdnContactScreen extends Activity {
         showStatus(getResources().getText(R.string.adding_fdn_contact));
     }
 
-    private void updateContact() {
+    protected void updateContact() {
         if (DBG) log("updateContact");
 
         if (!isValidNumber(getNumberFromTextField())) {
@@ -332,7 +317,7 @@ public class EditFdnContactScreen extends Activity {
     /**
      * Handle the delete command, based upon the state of the Activity.
      */
-    private void deleteSelected() {
+    protected void deleteSelected() {
         // delete ONLY if this is NOT a new contact.
         if (!mAddContact) {
             Intent intent = new Intent();
@@ -350,7 +335,7 @@ public class EditFdnContactScreen extends Activity {
         startActivityForResult(intent, PIN2_REQUEST_CODE);
     }
 
-    private void displayProgress(boolean flag) {
+    protected void displayProgress(boolean flag) {
         // indicate we are busy.
         mDataBusy = flag;
         getWindow().setFeatureInt(
@@ -365,14 +350,14 @@ public class EditFdnContactScreen extends Activity {
      * Removed the status field, with preference to displaying a toast
      * to match the rest of settings UI.
      */
-    private void showStatus(CharSequence statusMsg) {
+    protected void showStatus(CharSequence statusMsg) {
         if (statusMsg != null) {
             Toast.makeText(this, statusMsg, Toast.LENGTH_SHORT)
             .show();
         }
     }
 
-    private void handleResult(boolean success, boolean invalidNumber) {
+    protected void handleResult(boolean success, boolean invalidNumber) {
         if (success) {
             if (DBG) log("handleResult: success!");
             showStatus(getResources().getText(mAddContact ?
@@ -430,7 +415,7 @@ public class EditFdnContactScreen extends Activity {
         }
     };
 
-    private class QueryHandler extends AsyncQueryHandler {
+    protected class QueryHandler extends AsyncQueryHandler {
         public QueryHandler(ContentResolver cr) {
             super(cr);
         }
@@ -459,7 +444,7 @@ public class EditFdnContactScreen extends Activity {
         }
     }
 
-    private void log(String msg) {
+    protected void log(String msg) {
         Log.d(LOG_TAG, "[EditFdnContact] " + msg);
     }
 }
