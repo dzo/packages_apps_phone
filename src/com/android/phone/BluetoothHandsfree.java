@@ -38,6 +38,8 @@ import android.net.Uri;
 import android.os.AsyncResult;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.HandlerThread;
+import android.os.Looper;
 import android.os.Message;
 import android.os.PowerManager;
 import android.os.PowerManager.WakeLock;
@@ -199,6 +201,7 @@ public class BluetoothHandsfree {
     // is CHLD=1 command active from the remote side, as the call status
     // updates are different here need specific hanlding.
     private boolean mIsChld1Command;
+    private HandsfreeMessageHandler mHandler;
 
     public static String typeToString(int type) {
         switch (type) {
@@ -265,6 +268,10 @@ public class BluetoothHandsfree {
             mLocalBrsf |= BRSF_AG_VOICE_RECOG;
         }
 
+        HandlerThread thread = new HandlerThread("BluetoothHandsfreeHandler");
+        thread.start();
+        Looper looper = thread.getLooper();
+        mHandler = new HandsfreeMessageHandler(looper);
         mBluetoothPhoneState = new BluetoothPhoneState();
         mUserWantsAudio = true;
         mVirtualCallStarted = false;
@@ -725,8 +732,6 @@ public class BluetoothHandsfree {
         private static final int PRECISE_CALL_STATE_CHANGED = 2;
         private static final int RING = 3;
         private static final int PHONE_CDMA_CALL_WAITING = 4;
-        private static final int BATTERY_CHANGED = 5;
-        private static final int SIGNAL_STRENGTH_CHANGED = 6;
 
         private Handler mStateChangeHandler = new Handler() {
             @Override
@@ -749,12 +754,6 @@ public class BluetoothHandsfree {
                         connection = (Connection) ((AsyncResult) msg.obj).result;
                     }
                     handlePreciseCallStateChange(sendUpdate(), connection);
-                    break;
-                case BATTERY_CHANGED:
-                    updateBatteryState((Intent) msg.obj);
-                    break;
-                case SIGNAL_STRENGTH_CHANGED:
-                    updateSignalState((Intent) msg.obj);
                     break;
                 }
             }
@@ -933,13 +932,13 @@ public class BluetoothHandsfree {
             @Override
             public void onReceive(Context context, Intent intent) {
                 if (intent.getAction().equals(Intent.ACTION_BATTERY_CHANGED)) {
-                    Message msg = mStateChangeHandler.obtainMessage(BATTERY_CHANGED, intent);
-                    mStateChangeHandler.sendMessage(msg);
+                    Message msg = mHandler.obtainMessage(BATTERY_CHANGED, intent);
+                    mHandler.sendMessage(msg);
                 } else if (intent.getAction().equals(
                             TelephonyIntents.ACTION_SIGNAL_STRENGTH_CHANGED)) {
-                    Message msg = mStateChangeHandler.obtainMessage(SIGNAL_STRENGTH_CHANGED,
+                    Message msg = mHandler.obtainMessage(SIGNAL_STRENGTH_CHANGED,
                                                                     intent);
-                    mStateChangeHandler.sendMessage(msg);
+                    mHandler.sendMessage(msg);
                 } else if (intent.getAction().equals(
                     BluetoothA2dp.ACTION_CONNECTION_STATE_CHANGED)) {
                     int state = intent.getIntExtra(BluetoothProfile.EXTRA_STATE,
@@ -1423,20 +1422,35 @@ public class BluetoothHandsfree {
     private static final int MESSAGE_CHECK_PENDING_SCO = 6;
     private static final int SCO_AUDIO_STATE = 7;
     private static final int SCO_CONNECTION_CHECK = 8;
-    private static final int CODEC_CONNECTION_SETUP_COMPLETED = 9;
-    private static final int CODEC_CONNECTION_SETUP_TIMEOUT = 10;
+    private static final int BATTERY_CHANGED = 9;
+    private static final int SIGNAL_STRENGTH_CHANGED = 10;
+    private static final int CODEC_CONNECTION_SETUP_COMPLETED = 11;
+    private static final int CODEC_CONNECTION_SETUP_TIMEOUT = 12;
 
-    private final Handler mHandler = new Handler() {
+    private final class HandsfreeMessageHandler extends Handler {
+        private HandsfreeMessageHandler(Looper looper) {
+            super(looper);
+        }
+
         @Override
         public void handleMessage(Message msg) {
-            synchronized (BluetoothHandsfree.this) {
-                switch (msg.what) {
-                case SCO_CLOSED:
+            switch (msg.what) {
+            case SCO_CLOSED:
+                synchronized (BluetoothHandsfree.this) {
+                    // synchronized
+                    // Make atomic against audioOn, userWantsAudioOn
+                    // TODO finer lock to decouple from other call flow such as
+                    //      mWaitingForCallStart change
+
                     audioOff();
                     // notify mBluetoothPhoneState that the SCO channel has closed
                     mBluetoothPhoneState.scoClosed();
-                    break;
-                case CHECK_CALL_STARTED:
+                }
+                break;
+            case CHECK_CALL_STARTED:
+                synchronized (BluetoothHandsfree.this) {
+                    // synchronized
+                    // Protect test/change of mWaitingForCallStart
                     if (mWaitingForCallStart) {
                         mWaitingForCallStart = false;
                         Log.e(TAG, "Timeout waiting for call to start");
@@ -1445,62 +1459,50 @@ public class BluetoothHandsfree {
                             mStartCallWakeLock.release();
                         }
                     }
-                    break;
-                case CHECK_VOICE_RECOGNITION_STARTED:
+                }
+                break;
+            case CHECK_VOICE_RECOGNITION_STARTED:
+                synchronized (BluetoothHandsfree.this) {
+                    // synchronized
+                    // Protect test/change of mWaitingForVoiceRecognition
                     if (mWaitingForVoiceRecognition) {
                         mWaitingForVoiceRecognition = false;
                         Log.e(TAG, "Timeout waiting for voice recognition to start");
                         sendURC("ERROR");
                     }
-                    break;
-                case MESSAGE_CHECK_PENDING_SCO:
+                }
+                break;
+            case MESSAGE_CHECK_PENDING_SCO:
+                synchronized (BluetoothHandsfree.this) {
+                    // synchronized
+                    // Protect test/change of mPendingSco
                     if (mPendingScoForA2dp) {
                         Log.w(TAG, "Timeout suspending A2DP for SCO (mA2dpState = " +
                                 mA2dpState + "). Starting SCO anyway");
                         connectScoThread(CODEC_MSBC == mRemoteCodec);
                         mPendingScoForA2dp = false;
                     }
-                    break;
-                case CODEC_CONNECTION_SETUP_COMPLETED:
-                    if (mPendingScoForWbs) {
-                        try {
-                            connectScoThread(mLocalCodec == CODEC_MSBC);
-                            mPendingScoForWbs = false;
-                        } catch (Exception e) {
-                            fallbackNb();
-                        }
-                    }
-                    break;
-                case CODEC_CONNECTION_SETUP_TIMEOUT:
-                    // fall back to NB
-                    if (mPendingScoForWbs) {
-                        Log.i(TAG, "Timeout codec connection setup, starting SCO anyway using NB");
-                        mAudioManager.setParameters(HEADSET_SAMPLERATE + "=8000");
-                        connectScoThread(false);
-                        mPendingScoForWbs = false;
-                    }
-                    break;
-                case SCO_AUDIO_STATE:
-                    BluetoothDevice device = (BluetoothDevice) msg.obj;
-                    if (getAudioState(device) == BluetoothHeadset.STATE_AUDIO_CONNECTING) {
-                        setAudioState(BluetoothHeadset.STATE_AUDIO_DISCONNECTED, device);
-                    }
-                    break;
-                case SCO_CONNECTION_CHECK:
-                    synchronized (mBluetoothPhoneState) {
-                        // synchronized on mCall change
-                        if (mBluetoothPhoneState.mCall == 1) {
-                            // Sometimes, the SCO channel is torn down by HF with no reason.
-                            // Because we are still in active call, reconnect SCO.
-                            // audioOn does nothing if the SCO is already on.
-                            audioOn();
-                        }
-                    }
-                    break;
                 }
+                break;
+            case CODEC_CONNECTION_SETUP_COMPLETED:
+                if (mPendingScoForWbs) {
+                    try {
+                        connectScoThread(mLocalCodec == CODEC_MSBC);
+                        mPendingScoForWbs = false;
+                    } catch (Exception e) {
+                        fallbackNb();
+                    }
+                }
+                break;
+            case BATTERY_CHANGED:
+                mBluetoothPhoneState.updateBatteryState((Intent) msg.obj);
+                break;
+            case SIGNAL_STRENGTH_CHANGED:
+                mBluetoothPhoneState.updateSignalState((Intent) msg.obj);
+                break;
             }
         }
-    };
+    }
 
     void fallbackNb() {
         if ((0x0 != (mLocalBrsf & BRSF_AG_CODEC_NEGOTIATION)) &&
