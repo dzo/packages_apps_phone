@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2006 The Android Open Source Project
- * Copyright (c) 2011, Code Aurora Forum. All rights reserved.
+ * Copyright (c) 2011-2012, Code Aurora Forum. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -516,6 +516,11 @@ public class MSimPhoneInterfaceManager extends ITelephonyMSim.Stub {
         return ((MSimPhoneApp)mApp).isSimPinEnabled(subscription);
     }
 
+    public boolean isSimPukLocked(int subscription) {
+        enforceReadPermission();
+        return ((MSimPhoneApp)mApp).isSimPukLocked(subscription);
+    }
+
     public boolean supplyPin(String pin, int subscription) {
         enforceModifyPermission();
         final UnlockSim checkSimPin = new UnlockSim(getPhone(subscription).getIccCard());
@@ -523,9 +528,9 @@ public class MSimPhoneInterfaceManager extends ITelephonyMSim.Stub {
         return checkSimPin.unlockSim(null, pin);
     }
 
-    public boolean supplyPuk(String puk, String pin) {
+    public boolean supplyPuk(String puk, String pin, int subscription) {
         enforceModifyPermission();
-        final UnlockSim checkSimPuk = new UnlockSim(mPhone.getIccCard());
+        final UnlockSim checkSimPuk = new UnlockSim(getPhone(subscription).getIccCard());
         checkSimPuk.start();
         return checkSimPuk.unlockSim(puk, pin);
     }

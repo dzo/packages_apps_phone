@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2006 The Android Open Source Project
- * Copyright (c) 2010-2011, Code Aurora Forum. All rights reserved.
+ * Copyright (c) 2010-2012, Code Aurora Forum. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -157,6 +157,7 @@ public class PhoneApp extends Application implements AccelerometerListener.Orien
     boolean mShowBluetoothIndication = false;
     static int mDockState = Intent.EXTRA_DOCK_STATE_UNDOCKED;
     static boolean sVoiceCapable = true;
+    public boolean mIsSimPukLocked;
 
     // Internal PhoneApp Call state tracker
     CdmaPhoneCallState cdmaPhoneCallState;
@@ -1502,6 +1503,14 @@ public class PhoneApp extends Application implements AccelerometerListener.Orien
                 // been attempted.
                 mHandler.sendMessage(mHandler.obtainMessage(EVENT_SIM_STATE_CHANGED,
                         intent.getStringExtra(IccCard.INTENT_KEY_ICC_STATE)));
+                String reason = intent.getStringExtra(IccCard.INTENT_KEY_LOCKED_REASON);
+                if (IccCard.INTENT_VALUE_LOCKED_ON_PUK.equals(reason)) {
+                    Log.d(LOG_TAG, "Setting mIsSimPukLocked:true");
+                    mIsSimPukLocked = true;
+                } else {
+                    Log.d(LOG_TAG, "Setting mIsSimPukLocked:false");
+                    mIsSimPukLocked = false;
+                }
             } else if (action.equals(TelephonyIntents.ACTION_RADIO_TECHNOLOGY_CHANGED)) {
                 String newPhone = intent.getStringExtra(Phone.PHONE_NAME_KEY);
                 Log.d(LOG_TAG, "Radio technology switched. Now " + newPhone + " is active.");
@@ -1795,6 +1804,10 @@ public class PhoneApp extends Application implements AccelerometerListener.Orien
     Intent createCallLogIntent(int subscription) {
         return PhoneApp.createCallLogIntent();
 
+    }
+
+    boolean isSimPukLocked(int subscription) {
+        return mIsSimPukLocked;
     }
 
     public int getVoiceSubscriptionInService() {
