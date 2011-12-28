@@ -312,13 +312,14 @@ public class BluetoothHeadsetService extends Service {
             } else if (action.equals(BluetoothHandsfree.SLC_ESTABLISHED)) {
                 int newState = intent.getIntExtra(BluetoothHeadset.EXTRA_STATE, 0);
                 if (newState == BluetoothHeadset.STATE_CONNECTED) {
-                    if (currDevice == null || device == null) {
-                        return;
+                    if (currDevice == null || device == null ||
+                      mRemoteHeadsets.get(currDevice).mState != BluetoothHeadset.STATE_CONNECTING ||
+                      !device.equals(currDevice)) {
+                        return; // stale event
                     }
-                    if (device.equals(currDevice)) {
-                        log("SLC is up , broadcasting connected intent");
-                        setState(device, BluetoothProfile.STATE_CONNECTED);
-                    }
+                    log("SLC is up , broadcasting connected intent");
+                    setState(device, BluetoothProfile.STATE_CONNECTED);
+                    mHandler.removeMessages(MESSAGE_SLC_TIMEOUT);
                 }
             }
 
@@ -326,6 +327,7 @@ public class BluetoothHeadsetService extends Service {
     };
 
     private static final int CONNECT_HEADSET_DELAYED = 1;
+    private static final int MESSAGE_SLC_TIMEOUT = 2;
     private Handler mHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
@@ -333,6 +335,17 @@ public class BluetoothHeadsetService extends Service {
                 case CONNECT_HEADSET_DELAYED:
                     BluetoothDevice device = (BluetoothDevice) msg.obj;
                     getSdpRecordsAndConnect(device);
+                    break;
+                case MESSAGE_SLC_TIMEOUT:
+                    if (DBG) log("Handling SLC Timeout");
+                    BluetoothDevice curDevice = getCurrentDevice();
+                    BluetoothDevice sdevice = (BluetoothDevice) msg.obj;
+                    if (curDevice == null ||
+                       mRemoteHeadsets.get(curDevice).mState != BluetoothHeadset.STATE_CONNECTING ||
+                       !sdevice.equals(curDevice)) {
+                       return;  // stale events
+                    }
+                    setState(sdevice, BluetoothProfile.STATE_CONNECTED);
                     break;
             }
         }
@@ -465,6 +478,11 @@ public class BluetoothHeadsetService extends Service {
                 if (uuids != null &&
                     !(BluetoothUuid.isUuidPresent(uuids, BluetoothUuid.Handsfree))) {
                     setState(device, BluetoothProfile.STATE_CONNECTED);
+                } else {
+                    log("HFP device, scheduling SLC timer");
+                    Message slc_msg = mHandler.obtainMessage(MESSAGE_SLC_TIMEOUT);
+                    slc_msg.obj = device;
+                    mHandler.sendMessageDelayed(slc_msg, 2000);
                 }
 
                 mRemoteHeadsets.get(device).mHeadset = headset;
