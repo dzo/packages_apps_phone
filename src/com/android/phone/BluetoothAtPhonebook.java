@@ -82,6 +82,7 @@ public class BluetoothAtPhonebook {
 
     private int mCpbrIndex1, mCpbrIndex2;
     private boolean mCheckingAccessPermission;
+    private boolean mAccessRejected;
 
     // package and class name to which we send intent to check phone book access permission
     private static final String ACCESS_AUTHORITY_PACKAGE = "com.android.settings";
@@ -104,6 +105,7 @@ public class BluetoothAtPhonebook {
 
         mCpbrIndex1 = mCpbrIndex2 = -1;
         mCheckingAccessPermission = false;
+        mAccessRejected = false;
     }
 
     /** Returns the last dialled number, or null if no numbers have been called */
@@ -226,7 +228,9 @@ public class BluetoothAtPhonebook {
                 mCpbrIndex2 = index2;
                 mCheckingAccessPermission = true;
 
-                if (checkAccessPermission()) {
+                if (mAccessRejected == true) {
+                    return new AtCommandResult("ERROR");
+                } else if (checkAccessPermission()) {
                     mCheckingAccessPermission = false;
                     AtCommandResult atResult = processCpbrCommand();
                     mCpbrIndex1 = mCpbrIndex2 = -1;
@@ -288,6 +292,7 @@ public class BluetoothAtPhonebook {
                 AtCommandResult cpbrResult = processCpbrCommand();
                 headset.sendURC(cpbrResult.toString());
             } else {
+                mAccessRejected = true;
                 headset.sendURC("ERROR");
             }
         }
