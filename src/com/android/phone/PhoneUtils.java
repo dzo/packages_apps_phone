@@ -1724,7 +1724,7 @@ public class PhoneUtils {
         // InCallScreen / PhoneUtils.
         intent.putExtra(ADD_CALL_MODE_KEY, true);
 
-        app.startActivity(intent);
+        app.mContext.startActivity(intent);
     }
 
     static void turnOnSpeaker(Context context, boolean flag, boolean store) {
