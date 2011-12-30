@@ -125,6 +125,14 @@ public class IccDepersonalizationPanel extends IccPanel {
     public IccDepersonalizationPanel(Context context, int subtype) {
         super(context);
         mPersoSubtype = subtype;
+        mSubscription = PhoneApp.getInstance().getDefaultSubscription();
+    }
+
+    //constructor
+    public IccDepersonalizationPanel(Context context, int subtype, int subscription) {
+        super(context);
+        mPersoSubtype = subtype;
+        mSubscription = subscription;
     }
 
     @Override
@@ -165,7 +173,7 @@ public class IccDepersonalizationPanel extends IccPanel {
         mStatusPanel = (LinearLayout) findViewById(R.id.status_panel);
         mStatusText = (TextView) findViewById(R.id.status_text);
 
-        mPhone = PhoneApp.getInstance().getPhone();
+        mPhone = PhoneApp.getInstance().getPhone(mSubscription);
     }
 
     @Override
@@ -207,13 +215,13 @@ public class IccDepersonalizationPanel extends IccPanel {
                         label = R.string.label_ndp;
                         break;
                     case IN_PROGRESS:
-                        label = R.string.requesting_unlock;
+                        label = R.string.requesting_nw_unlock;
                         break;
                     case ERROR:
-                        label = R.string.unlock_failed;
+                        label = R.string.nw_unlock_failed;
                         break;
                     case SUCCESS:
-                        label = R.string.unlock_success;
+                        label = R.string.nw_unlock_success;
                         break;
                 }
                 break;
@@ -382,8 +390,17 @@ public class IccDepersonalizationPanel extends IccPanel {
                 break;
         }
         if (type == 0) {
-            String displayText = getContext().getString(label);
-            mPersoSubtypeText.setText(displayText);
+            String displayText = "";
+            if (TelephonyManager.getDefault().isMultiSimEnabled()) {
+                log("De-Personalization for subtype " + mPersoSubtype +
+                        " on subscription: " + mSubscription);
+                displayText = getContext().getString(label) + " " +
+                        getContext().getString(R.string.label_subscription) + (mSubscription + 1);
+                mPersoSubtypeText.setText(displayText);
+            } else {
+                displayText = getContext().getString(label);
+                mPersoSubtypeText.setText(displayText);
+            }
         } else {
             mStatusText.setText(label);
             mEntryPanel.setVisibility(View.GONE);

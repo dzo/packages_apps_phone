@@ -249,10 +249,12 @@ public class MSimPhoneApp extends PhoneApp {
             notifier = MSimCallNotifier.init(this, phone, ringer, mBtHandsfree, new CallLogAsync());
 
             // register for ICC status
-            IccCard sim = phone.getIccCard();
-            if (sim != null) {
-                if (VDBG) Log.v(LOG_TAG, "register for ICC status");
-                sim.registerForPersoLocked(mHandler, EVENT_PERSO_LOCKED, null);
+            for (int i = 0; i < TelephonyManager.getDefault().getPhoneCount(); i++) {
+                IccCard sim = getPhone(i).getIccCard();
+                if (sim != null) {
+                    if (VDBG) Log.v(LOG_TAG, "register for ICC status on subscription: " + i);
+                    sim.registerForPersoLocked(mHandler, EVENT_PERSO_LOCKED, new Integer(i));
+                }
             }
 
             // register for MMI/USSD
@@ -345,6 +347,16 @@ public class MSimPhoneApp extends PhoneApp {
                                       CallFeaturesSetting.HAC_VAL_OFF);
         }
 
+    }
+
+    @Override
+    void initIccDepersonalizationPanel(AsyncResult ar) {
+        int subtype = (Integer)ar.result;
+        int subscription = (Integer)ar.userObj;
+        Log.i(LOG_TAG, "show sim depersonal panel subscription: " + subscription);
+        IccDepersonalizationPanel dpPanel =
+                new IccDepersonalizationPanel(mContext, subtype, subscription);
+        dpPanel.show();
     }
 
     /**
@@ -478,15 +490,6 @@ public class MSimPhoneApp extends PhoneApp {
         if (mInCallScreen != null) {
             mInCallScreen.updateAfterRadioTechnologyChange();
         }
-
-        // Update registration for ICC status after radio technology change
-        IccCard sim = phone.getIccCard();
-        if (sim != null) {
-            if (DBG) Log.d(LOG_TAG, "Update registration for ICC status...");
-
-            //Register all events new to the new active phone
-            sim.registerForPersoLocked(mHandler, EVENT_PERSO_LOCKED, null);
-        }
     }
 
     /**
@@ -498,7 +501,7 @@ public class MSimPhoneApp extends PhoneApp {
             String action = intent.getAction();
             Log.v(LOG_TAG,"Action intent recieved:"+action);
             //gets the subscription information ( "0" or "1")
-            int subscription = intent.getIntExtra("phone_subscription", getDefaultSubscription());
+            int subscription = intent.getIntExtra(SUBSCRIPTION_KEY, getDefaultSubscription());
             if (action.equals(Intent.ACTION_AIRPLANE_MODE_CHANGED)) {
                 // When airplane mode is selected/deselected from settings
                 // AirplaneModeEnabler sets the value of extra "state" to
@@ -525,7 +528,7 @@ public class MSimPhoneApp extends PhoneApp {
                     // Start Emergency Callback Mode service
                     if (intent.getBooleanExtra("phoneinECMState", false)) {
                         Intent ecbmIntent = new Intent(context, EmergencyCallbackModeService.class);
-                        ecbmIntent.putExtra("Subscription", subscription);
+                        ecbmIntent.putExtra(SUBSCRIPTION_KEY, subscription);
                         context.startService(ecbmIntent);
                     }
                 } else {
