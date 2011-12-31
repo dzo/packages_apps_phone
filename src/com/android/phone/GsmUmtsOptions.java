@@ -73,7 +73,6 @@ public class GsmUmtsOptions {
         }
          mButtonOperatorSelectionExpand =
                     (PreferenceScreen) mPrefScreen.findPreference(BUTTON_OPERATOR_SELECTION_EXPAND_KEY);
-        mButtonOperatorSelectionExpand.getIntent().putExtra(SUBSCRIPTION_KEY, mSubscription);
         if (mButtonOperatorSelectionExpand != null) {
             if (mPhone.getPhoneType() != Phone.PHONE_TYPE_GSM) {
                 mButtonOperatorSelectionExpand.setEnabled(false);
