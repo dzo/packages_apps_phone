@@ -364,8 +364,9 @@ public class OutgoingCallBroadcaster extends Activity
             int requestCode = 1;
             startActivityForResult(intentMSim, requestCode);
         } else {
-            mSubscription = PhoneApp.getInstance().getVoiceSubscription();
-            Log.d(TAG, "subscription when there is no prompt is "+ mSubscription);
+            mSubscription = intent.getIntExtra(SUBSCRIPTION_KEY,
+                    PhoneApp.getInstance().getVoiceSubscription());
+            Log.d(TAG, "subscription when there is (from Extra):" + mSubscription);
             processIntent(intent);
         }
     }
