@@ -119,11 +119,7 @@ public class CallCard extends FrameLayout
         if (DBG) log("- context " + context + ", attrs " + attrs);
 
         // Inflate the contents of this CallCard, and add it (to ourself) as a child.
-        LayoutInflater inflater = LayoutInflater.from(context);
-        inflater.inflate(
-                R.layout.call_card,  // resource
-                this,                // root
-                true);
+        inflate(context);
 
         mApplication = PhoneApp.getInstance();
 
@@ -134,6 +130,14 @@ public class CallCard extends FrameLayout
 
         mDensity = getResources().getDisplayMetrics().density;
         if (DBG) log("- Density: " + mDensity);
+    }
+
+    protected void inflate(Context context) {
+        LayoutInflater inflater = LayoutInflater.from(context);
+        inflater.inflate(
+                R.layout.call_card,  // resource
+                this,                // root
+                true);
     }
 
     void setInCallScreenInstance(InCallScreen inCallScreen) {

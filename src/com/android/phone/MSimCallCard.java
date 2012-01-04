@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2006 The Android Open Source Project
- * Copyright (c) 2011 Code Aurora Forum. All rights reserved.
+ * Copyright (c) 2011-2012 Code Aurora Forum. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -55,10 +55,12 @@ public class MSimCallCard extends CallCard {
         if (DBG) log("MSimCallCard constructor...");
         if (DBG) log("- this = " + this);
         if (DBG) log("- context " + context + ", attrs " + attrs);
+    }
 
-        // Inflate the contents of this CallCard, and add it (to ourself) as a child.
+    @Override
+    protected void inflate(Context context) {
         LayoutInflater inflater = LayoutInflater.from(context);
-            inflater.inflate(
+        inflater.inflate(
                 R.layout.call_card_multi_sim,  // resource
                 this,                // root
                 true);
