@@ -120,15 +120,18 @@ public class TelephonyCapabilities {
     }
 
     /**
-     * Return true if the current phone can retrieve the voice message count.
+     * Return true if the current phone can retrieve the voice message count
+     * and the count is available. Value of -1 indicates that the count is
+     * unavailable
      *
-     * Currently this is assumed to be true on CDMA phones and false otherwise.
+     * Currently it is assumed to be true that both CDMA and GSM phones can
+     * return the voice message count
      *
      * TODO: This capability should really be exposed by the telephony
      * layer, since it depends on the underlying telephony technology.
      */
     /* package */ static boolean supportsVoiceMessageCount(Phone phone) {
-        return (phone.getPhoneType() == Phone.PHONE_TYPE_CDMA);
+        return (phone.getVoiceMessageCount() != -1);
     }
 
     /**
