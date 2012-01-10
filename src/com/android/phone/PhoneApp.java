@@ -91,6 +91,7 @@ public class PhoneApp extends Application implements AccelerometerListener.Orien
     private static final boolean DBG =
             (PhoneApp.DBG_LEVEL >= 1) && (SystemProperties.getInt("ro.debuggable", 0) == 1);
     private static final boolean VDBG = (PhoneApp.DBG_LEVEL >= 2);
+    private static final String PROPERTY_AIRPLANE_MODE_ON = "persist.radio.airplane_mode_on";
 
     // Message codes; see mHandler below.
     static final int EVENT_PERSO_LOCKED = 3;
@@ -1455,6 +1456,13 @@ public class PhoneApp extends Application implements AccelerometerListener.Orien
                 // disabled and broadcasts the intent. setRadioPower uses
                 // true if airplane mode is disabled and false if enabled.
                 boolean enabled = intent.getBooleanExtra("state",false);
+
+                // Set the airplane mode property for RIL to read on boot up
+                // to know if the phone is in airplane mode so that RIL can
+                // power down the ICC card.
+                Log.d(LOG_TAG, "Setting property " + PROPERTY_AIRPLANE_MODE_ON);
+                SystemProperties.set(PROPERTY_AIRPLANE_MODE_ON, (enabled ? "1" : "0"));
+
                 phone.setRadioPower(!enabled);
             } else if (action.equals(BluetoothHeadset.ACTION_CONNECTION_STATE_CHANGED)) {
                 mBluetoothHeadsetState = intent.getIntExtra(BluetoothHeadset.EXTRA_STATE,
