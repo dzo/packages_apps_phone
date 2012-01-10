@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2006 The Android Open Source Project
- * Copyright (c) 2011 Code Aurora Forum. All rights reserved.
+ * Copyright (c) 2011-2012, Code Aurora Forum. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -162,6 +162,11 @@ public class MSimCallNotifier extends CallNotifier {
         sendMessageDelayed(message, delayMillis);
     }
 
+    protected void onCfiChanged(boolean visible, int subscription) {
+        if (VDBG) log("onCfiChanged(): " + visible);
+        ((MSimNotificationMgr)mApplication.notificationMgr).updateCfi(visible, subscription);
+    }
+
     /**
      * Helper function used to show a missed call notification.
      */
@@ -214,7 +219,7 @@ public class MSimCallNotifier extends CallNotifier {
 
             @Override
             public void onCallForwardingIndicatorChanged(boolean cfi) {
-                onCfiChanged(cfi);
+                onCfiChanged(cfi, mSubscription);
             }
         };
         return mPhoneStateListener;
