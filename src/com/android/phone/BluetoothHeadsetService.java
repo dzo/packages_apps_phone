@@ -927,6 +927,8 @@ public class BluetoothHeadsetService extends Service {
                     // Just set the state here.
                     setState(device, BluetoothProfile.STATE_DISCONNECTED);
                     return true;
+                } else if (remoteHeadset.mState == BluetoothProfile.STATE_DISCONNECTING) {
+                    return true;
                 }
                 return false;
             }
