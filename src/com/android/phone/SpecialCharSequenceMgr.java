@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2006 The Android Open Source Project
+ * Copyright (c) 2011-2012, Code Aurora Forum. All rights reserved
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -173,8 +174,13 @@ public class SpecialCharSequenceMgr {
                 int index = Integer.parseInt(input.substring(0, len-1));
                 Intent intent = new Intent(Intent.ACTION_PICK);
 
-                intent.setClassName("com.android.phone",
-                                    "com.android.phone.SimContacts");
+                if (TelephonyManager.getDefault().isMultiSimEnabled()) {
+                    intent.setClassName("com.android.phone",
+                                        "com.android.phone.MSimContacts");
+                } else {
+                    intent.setClassName("com.android.phone",
+                                        "com.android.phone.SimContacts");
+                }
                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 intent.putExtra("index", index);
                 PhoneApp.getInstance().startActivity(intent);
