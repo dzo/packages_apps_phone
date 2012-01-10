@@ -1601,7 +1601,7 @@ public class PhoneApp extends Application implements AccelerometerListener.Orien
 
         if (ss != null) {
             int state = ss.getState();
-            notificationMgr.updateNetworkSelection(state);
+            notificationMgr.updateNetworkSelection(state, getDefaultPhone());
 
             if ((state == ServiceState.STATE_IN_SERVICE || state == ServiceState.STATE_EMERGENCY_ONLY)
                 && mTtyEnabled && !mTtySetOnPowerUp) {

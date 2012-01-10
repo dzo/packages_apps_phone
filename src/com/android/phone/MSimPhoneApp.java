@@ -613,7 +613,7 @@ public class MSimPhoneApp extends PhoneApp {
 
         if (ss != null) {
             int state = ss.getState();
-            ((MSimNotificationMgr)notificationMgr).updateNetworkSelection(state, phone);
+            notificationMgr.updateNetworkSelection(state, phone);
         }
     }
 

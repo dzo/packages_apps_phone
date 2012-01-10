@@ -84,9 +84,9 @@ public class NotificationMgr implements CallerInfoAsyncQuery.OnQueryCompleteList
     /** The singleton NotificationMgr instance. */
     protected static NotificationMgr sInstance;
 
-    protected PhoneApp mApp;
-    protected Phone mPhone;
-    protected CallManager mCM;
+    private PhoneApp mApp;
+    private Phone mPhone;
+    private CallManager mCM;
 
     protected Context mContext;
     protected NotificationManager mNotificationManager;
@@ -98,24 +98,24 @@ public class NotificationMgr implements CallerInfoAsyncQuery.OnQueryCompleteList
     public StatusBarHelper statusBarHelper;
 
     // used to track the missed call counter, default to 0.
-    protected int mNumberMissedCalls = 0;
+    private int mNumberMissedCalls = 0;
 
     // Currently-displayed resource IDs for some status bar icons (or zero
     // if no notification is active):
     private int mInCallResId;
 
     // used to track the notification of selected network unavailable
-    protected boolean mSelectedUnavailableNotify = false;
+    private boolean mSelectedUnavailableNotify = false;
 
     // Retry params for the getVoiceMailNumber() call; see updateMwi().
-    static final int MAX_VM_NUMBER_RETRIES = 5;
-    static final int VM_NUMBER_RETRY_DELAY_MILLIS = 10000;
+    protected static final int MAX_VM_NUMBER_RETRIES = 5;
+    protected static final int VM_NUMBER_RETRY_DELAY_MILLIS = 10000;
     protected int mVmNumberRetriesRemaining = MAX_VM_NUMBER_RETRIES;
 
     // Query used to look up caller-id info for the "call log" notification.
-    protected QueryHandler mQueryHandler = null;
-    static final int CALL_LOG_TOKEN = -1;
-    static final int CONTACT_TOKEN = -2;
+    private QueryHandler mQueryHandler = null;
+    private static final int CALL_LOG_TOKEN = -1;
+    private static final int CONTACT_TOKEN = -2;
 
     /**
      * Private constructor (this is a singleton).
@@ -287,7 +287,7 @@ public class NotificationMgr implements CallerInfoAsyncQuery.OnQueryCompleteList
      * Class used to run asynchronous queries to re-populate
      * the notifications we care about.
      */
-    protected class QueryHandler extends AsyncQueryHandler {
+    private class QueryHandler extends AsyncQueryHandler {
 
         /**
          * Used to store relevant fields for the Missed Call
@@ -378,7 +378,7 @@ public class NotificationMgr implements CallerInfoAsyncQuery.OnQueryCompleteList
          * Factory method to generate a NotificationInfo object given a
          * cursor from the call log table.
          */
-        private NotificationInfo getNotificationInfo(Cursor cursor) {
+        private final NotificationInfo getNotificationInfo(Cursor cursor) {
             NotificationInfo n = new NotificationInfo();
             n.name = null;
             n.number = cursor.getString(cursor.getColumnIndexOrThrow(Calls.NUMBER));
@@ -477,7 +477,7 @@ public class NotificationMgr implements CallerInfoAsyncQuery.OnQueryCompleteList
     }
 
     /** Returns an intent to be invoked when the missed call notification is cleared. */
-    protected PendingIntent createClearMissedCallsIntent() {
+    private PendingIntent createClearMissedCallsIntent() {
         Intent intent = new Intent(mContext, ClearMissedCallsService.class);
         intent.setAction(ClearMissedCallsService.ACTION_CLEAR_MISSED_CALLS);
         return PendingIntent.getService(mContext, 0, intent, 0);
@@ -1226,7 +1226,7 @@ public class NotificationMgr implements CallerInfoAsyncQuery.OnQueryCompleteList
      * Display the network selection "no service" notification
      * @param operator is the numeric operator number
      */
-     protected void showNetworkSelection(String operator) {
+     private void showNetworkSelection(String operator) {
         if (DBG) log("showNetworkSelection(" + operator + ")...");
 
         String titleText = mContext.getString(
@@ -1257,7 +1257,7 @@ public class NotificationMgr implements CallerInfoAsyncQuery.OnQueryCompleteList
     /**
      * Turn off the network selection "no service" notification
      */
-    protected void cancelNetworkSelection() {
+    private void cancelNetworkSelection() {
         if (DBG) log("cancelNetworkSelection()...");
         mNotificationManager.cancel(SELECTED_OPERATOR_FAIL_NOTIFICATION);
     }
@@ -1267,8 +1267,8 @@ public class NotificationMgr implements CallerInfoAsyncQuery.OnQueryCompleteList
      *
      * @param serviceState Phone service state
      */
-    void updateNetworkSelection(int serviceState) {
-        if (TelephonyCapabilities.supportsNetworkSelection(mPhone)) {
+    void updateNetworkSelection(int serviceState, Phone phone) {
+        if (TelephonyCapabilities.supportsNetworkSelection(phone)) {
             // get the shared preference of network_selection.
             // empty is auto mode, otherwise it is the operator alpha name
             // in case there is no operator name, check the operator numeric

@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2006 The Android Open Source Project
- * Copyright (c) 2010-2011, Code Aurora Forum. All rights reserved.
+ * Copyright (c) 2010-2012, Code Aurora Forum. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -110,17 +110,17 @@ public class CallNotifier extends Handler
     private boolean mCallWaitingTimeOut = false;
 
     // values used to track the query state
-    protected static final int CALLERINFO_QUERY_READY = 0;
-    protected static final int CALLERINFO_QUERYING = -1;
+    private static final int CALLERINFO_QUERY_READY = 0;
+    private static final int CALLERINFO_QUERYING = -1;
 
     // the state of the CallerInfo Query.
-    protected int mCallerInfoQueryState;
+    private int mCallerInfoQueryState;
 
     // object used to synchronize access to mCallerInfoQueryState
-    protected Object mCallerInfoQueryStateGuard = new Object();
+    private Object mCallerInfoQueryStateGuard = new Object();
 
     // Event used to indicate a query timeout.
-    protected static final int RINGER_CUSTOM_RINGTONE_QUERY_TIMEOUT = 100;
+    private static final int RINGER_CUSTOM_RINGTONE_QUERY_TIMEOUT = 100;
 
     // Events from the Phone object:
     private static final int PHONE_STATE_CHANGED = 1;
@@ -155,8 +155,8 @@ public class CallNotifier extends Handler
     private static final int EMERGENCY_TONE_VIBRATE = 2;
 
     protected PhoneApp mApplication;
-    protected CallManager mCM;
-    protected Ringer mRinger;
+    private CallManager mCM;
+    private Ringer mRinger;
     private BluetoothHandsfree mBluetoothHandsfree;
     private CallLogAsync mCallLog;
     private boolean mSilentRingerRequested;
@@ -223,9 +223,12 @@ public class CallNotifier extends Handler
 
         mRinger = ringer;
         mBluetoothHandsfree = btMgr;
+        listen();
+    }
 
-        TelephonyManager telephonyManager = (TelephonyManager)app.mContext.getSystemService(
-                Context.TELEPHONY_SERVICE);
+    void listen() {
+        TelephonyManager telephonyManager = (TelephonyManager)mApplication.mContext.
+                getSystemService(Context.TELEPHONY_SERVICE);
         telephonyManager.listen(mPhoneStateListener,
                 PhoneStateListener.LISTEN_MESSAGE_WAITING_INDICATOR
                 | PhoneStateListener.LISTEN_CALL_FORWARDING_INDICATOR);
@@ -832,7 +835,7 @@ public class CallNotifier extends Handler
      * (We still tell the Ringer to start, but it's going to use the
      * default ringtone.)
      */
-    protected void onCustomRingQueryComplete() {
+    private void onCustomRingQueryComplete() {
         boolean isQueryExecutionTimeExpired = false;
         synchronized (mCallerInfoQueryStateGuard) {
             if (mCallerInfoQueryState == CALLERINFO_QUERYING) {
@@ -1509,7 +1512,7 @@ public class CallNotifier extends Handler
         PhoneUtils.setAudioMode(mCM);
     }
 
-    private void onMwiChanged(boolean visible) {
+    protected void onMwiChanged(boolean visible) {
         if (VDBG) log("onMwiChanged(): " + visible);
 
         // "Voicemail" is meaningless on non-voice-capable devices,
@@ -2121,7 +2124,7 @@ public class CallNotifier extends Handler
     /**
      * Helper function used to show a missed call notification.
      */
-    void showMissedCallNotification(Connection c, final long date) {
+    private void showMissedCallNotification(Connection c, final long date) {
         PhoneUtils.CallerInfoToken info =
             PhoneUtils.startGetCallerInfo(mApplication.mContext, c, this, Long.valueOf(date));
         if (info != null) {
