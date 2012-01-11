@@ -42,6 +42,7 @@ import com.android.internal.telephony.Phone;
 import com.android.internal.telephony.CallManager;
 import com.android.internal.telephony.TelephonyIntents;
 import com.android.internal.telephony.CommandException;
+import com.android.internal.telephony.QosSpec;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -618,6 +619,30 @@ public class PhoneInterfaceManager extends ITelephony.Stub {
     public int disableApnType(String type) {
         enforceModifyPermission();
         return mPhone.disableApnType(type);
+    }
+
+    public int enableQos(QosSpec qosSpec, String type) {
+        return mPhone.enableQos(qosSpec, type);
+    }
+
+    public int disableQos(int qosId) {
+        return mPhone.disableQos(qosId);
+    }
+
+    public int modifyQos(int qosId, QosSpec qosSpec) {
+        return mPhone.modifyQos(qosId, qosSpec);
+    }
+
+    public int suspendQos(int qosId) {
+        return mPhone.suspendQos(qosId);
+    }
+
+    public int resumeQos(int qosId) {
+        return mPhone.resumeQos(qosId);
+    }
+
+    public int getQosStatus(int qosId) {
+        return mPhone.getQosStatus(qosId);
     }
 
     public boolean disableDataConnectivity() {
