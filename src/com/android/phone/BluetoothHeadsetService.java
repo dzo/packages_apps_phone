@@ -414,7 +414,7 @@ public class BluetoothHeadsetService extends Service {
                 if (result == ECONNREFUSED && mDeviceSdpQuery == null) {
                     // The rfcomm channel number might have changed, do SDP
                     // query and try to connect again.
-                    mDeviceSdpQuery = getCurrentDevice();
+                    mDeviceSdpQuery = device;
                     device.fetchUuidsWithSdp();
                     mConnectThread = null;
                     return;
@@ -853,6 +853,7 @@ public class BluetoothHeadsetService extends Service {
                     } catch (InterruptedException e) {
                         Log.e(TAG, "Connection cancelled twice?", e);
                     }
+                    mDeviceSdpQuery = null;
                     mConnectThread = null;
                 }
                 return true;
