@@ -655,7 +655,9 @@ public class MSimPhoneApp extends PhoneApp {
     @Override
     public int getVoiceSubscriptionInService() {
         int voiceSub = getVoiceSubscription();
-        int sub = voiceSub;
+        //Emergency Call should always go on 1st sub .i.e.0
+        //when both the subscriptions are out of service
+        int sub = 0;
         for (int i = 0; i < TelephonyManager.getDefault().getPhoneCount(); i++) {
             Phone phone = getPhone(i);
             int ss = phone.getServiceState().getState();
