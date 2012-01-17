@@ -467,6 +467,8 @@ public class Settings extends PreferenceActivity implements DialogInterface.OnCl
             } else {
                 mPhone.getPreferredNetworkType(obtainMessage(MESSAGE_GET_PREFERRED_NETWORK_TYPE));
             }
+            // Update '2GOnly checkbox' based on recent preferred network type selection.
+            Use2GOnlyCheckBoxPreference.updatePhone(mPhone);
         }
 
         private void resetNetworkModeToDefault() {
