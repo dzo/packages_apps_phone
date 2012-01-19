@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2006 The Android Open Source Project
+ * Copyright (c) 2010-2012, Code Aurora Forum. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -376,6 +377,7 @@ public class BluetoothHeadsetService extends Service {
 
         private static final int EINTERRUPT = -1000;
         private static final int ECONNREFUSED = -111;
+        private static final int ECONNABORTED = -103; //Aborted by user
 
         public RfcommConnectThread(BluetoothDevice device, int channel, int type) {
             super();
@@ -408,7 +410,7 @@ public class BluetoothHeadsetService extends Service {
 
             int result = waitForConnect(headset);
 
-            if (result != EINTERRUPT && result != 1) {
+            if (result != EINTERRUPT && result != 1 && result != ECONNABORTED) {
                 if (result == ECONNREFUSED && mDeviceSdpQuery == null) {
                     // The rfcomm channel number might have changed, do SDP
                     // query and try to connect again.
