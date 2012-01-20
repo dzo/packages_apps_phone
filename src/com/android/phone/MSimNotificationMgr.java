@@ -87,8 +87,8 @@ public class MSimNotificationMgr extends NotificationMgr {
         int subscription = phone.getSubscription();
         if (visible) {
             int resId = android.R.drawable.stat_notify_voicemail;
-            int[] iconId = {android.R.drawable.stat_notify_voicemail,
-                   android.R.drawable.stat_notify_voicemail};
+            int[] iconId = {android.R.drawable.stat_notify_voicemail_sub1,
+                    android.R.drawable.stat_notify_voicemail_sub2};
 
             // This Notification can get a lot fancier once we have more
             // information about the current voicemail messages.
@@ -186,9 +186,13 @@ public class MSimNotificationMgr extends NotificationMgr {
             notification.defaults |= Notification.DEFAULT_SOUND;
             notification.flags |= Notification.FLAG_NO_CLEAR;
             configureLedNotification(notification);
+            int notificationId = (subscription == 0) ? VOICEMAIL_NOTIFICATION
+                    : VOICEMAIL_NOTIFICATION_SUB2;
             mNotificationManager.notify(VOICEMAIL_NOTIFICATION, notification);
         } else {
-            mNotificationManager.cancel(VOICEMAIL_NOTIFICATION);
+            int notificationId = (subscription == 0) ? VOICEMAIL_NOTIFICATION
+                    : VOICEMAIL_NOTIFICATION_SUB2;
+            mNotificationManager.cancel(notificationId);
         }
     }
 
