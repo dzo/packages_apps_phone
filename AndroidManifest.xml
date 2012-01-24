@@ -427,6 +427,7 @@
         </activity>
 
         <activity android:name="XDivertPhoneNumbers"
+                android:configChanges="mcc|mnc"
                 android:label="@string/phone_numbers">
         </activity>
 

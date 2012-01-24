@@ -71,6 +71,9 @@ public class XDivertCheckBoxPreference extends CheckBoxPreference {
     boolean mXdivertStatus;
     TimeConsumingPreferenceListener mTcpListener;
 
+    private MSimCallNotifier mCallNotif;
+    private XDivertUtility mXDivertUtility;
+
     private static final int SUB1 = 0;
     private static final int SUB2 = 1;
     private static final int MESSAGE_GET_CFNRC = 2;
@@ -97,6 +100,14 @@ public class XDivertCheckBoxPreference extends CheckBoxPreference {
     void init(TimeConsumingPreferenceListener listener, boolean skipReading,
             String sub1, String sub2) {
         mTcpListener = listener;
+        PhoneApp app = PhoneApp.getInstance();
+        mCallNotif = (MSimCallNotifier)app.notifier;
+
+        Log.d(LOG_TAG, "init sub1 = " + sub1 + " , sub2 = " + sub2);
+        mXDivertUtility = XDivertUtility.getInstance();
+        // Store the numbers to shared preference
+        mXDivertUtility.storeNumber(sub1, SUB1);
+        mXDivertUtility.storeNumber(sub2, SUB2);
 
         processStartDialog(START, true);
         if (!skipReading) {
@@ -414,6 +425,8 @@ public class XDivertCheckBoxPreference extends CheckBoxPreference {
                 //Call Waiting is enabled, then set the checkbox accordingly.
                 mXdivertStatus = validateXDivert();
                 setChecked(mXdivertStatus);
+                mCallNotif.onXDivertChanged(mXdivertStatus);
+                mCallNotif.setXDivertStatus(mXdivertStatus);
             }
         }
     }
@@ -454,6 +467,8 @@ public class XDivertCheckBoxPreference extends CheckBoxPreference {
                 //set the checkbox accordingly.
                 mXdivertStatus = validateXDivert();
                 setChecked(mXdivertStatus);
+                mCallNotif.onXDivertChanged(mXdivertStatus);
+                mCallNotif.setXDivertStatus(mXdivertStatus);
            }
        }
    }

@@ -96,7 +96,6 @@ public class MSimCallFeaturesSetting extends PreferenceActivity
     private ListPreference mButtonDTMF;
     private ListPreference mButtonTTY;
     private PreferenceScreen mButtonXDivert;
-    private XDivertCheckBoxPreference mXDivertCheckbox;
     private Phone mPhoneObj[];
     private int mPhoneType[];
     private int mNumPhones;
@@ -132,6 +131,7 @@ public class MSimCallFeaturesSetting extends PreferenceActivity
             mAudioManager.setParameter(HAC_KEY, hac != 0 ? HAC_VAL_ON : HAC_VAL_OFF);
             return true;
         } else if (preference == mButtonXDivert) {
+             preProcessXDivert();
              processXDivert();
              return true;
         }
@@ -274,8 +274,6 @@ public class MSimCallFeaturesSetting extends PreferenceActivity
             //SIM records does not have msisdn, hence ask user to enter
             //the phone numbers.
             Intent intent = new Intent();
-            intent.putExtra("Sub1_Line1Number" ,mLine1Number[SUB1]);
-            intent.putExtra("Sub2_Line1Number" ,mLine1Number[SUB2]);
             intent.setClass(this, XDivertPhoneNumbers.class);
             startActivity(intent);
         } else {

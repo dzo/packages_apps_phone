@@ -1274,6 +1274,7 @@
     <string name="xdivert_status">X-Divert Status</string>
     <string name="xdivert_active">Active</string>
     <string name="xdivert_not_active">Not Active</string>
+    <string name="xdivert_imsi_not_read">Sim Initialization happening.Please try after some time.</string>
 
     <!-- Title for the dialog used to display CDMA DisplayInfo -->
     <string name="network_message">Network Message</string>

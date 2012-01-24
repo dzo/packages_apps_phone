@@ -30,8 +30,15 @@
 package com.android.phone;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.AlertDialog.Builder;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.res.Configuration;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
+import android.telephony.MSimTelephonyManager;
 import android.text.Selection;
 import android.text.Spannable;
 import android.util.Log;
@@ -52,35 +59,75 @@ public class XDivertPhoneNumbers extends Activity {
 
     private EditText mSub1Line1Number;
     private EditText mSub2Line1Number;
-    private String mSub1Number;
-    private String mSub2Number;
     private Button mButton;
+    private String[] mSubLine1Number;
+    int mNumPhones;
+    XDivertUtility mXDivertUtility;
 
     @Override
     protected void onCreate(Bundle icicle) {
         super.onCreate(icicle);
 
         Intent intent = getIntent();
-        mSub1Number = intent.getStringExtra("Sub1_Line1Number");
-        mSub2Number = intent.getStringExtra("Sub2_Line1Number");
-        Log.d(LOG_TAG,"onCreate: sub1 line number = " + mSub1Number +
-                "sub2 line number = " + mSub2Number);
+        mNumPhones = MSimTelephonyManager.getDefault().getPhoneCount();
+        mXDivertUtility = XDivertUtility.getInstance();
+        mSubLine1Number = new String[mNumPhones];
+        for (int i = 0; i < mNumPhones ; i++) {
+            mSubLine1Number[i] = null;
+        }
         setContentView(R.layout.xdivert_phone_numbers);
-        setupView();
+        // If the sim has been changed & user immediately enters XDivert screen after configuring
+        // the new sim (but before SIM_RECORDS_LOADED event), check the imsi's again &
+        // update the shared pref & numbers accordingly.
+        boolean isImsiReady = mXDivertUtility.checkImsiReady();
+        Log.d(LOG_TAG,"onCreate isImsiReady = " + isImsiReady);
+        if (!isImsiReady) {
+            displayAlertDialog(R.string.xdivert_imsi_not_read);
+        } else {
+            // Get the lineNumbers from XDivertUtility
+            // lineNumbers will be returned if they were previously stored in shared preference
+            // else null will be returned.
+            mSubLine1Number = mXDivertUtility.getLineNumbers();
+            setupView();
+        }
+    }
 
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+    }
+
+    public void displayAlertDialog(int resId) {
+        new AlertDialog.Builder(this).setMessage(resId)
+            .setTitle(R.string.xdivert_title)
+            .setIcon(android.R.drawable.ic_dialog_alert)
+            .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int whichButton) {
+                        Log.d(LOG_TAG, "XDivertPhoneNumbers onClick");
+                    }
+                })
+            .show()
+            .setOnDismissListener(new DialogInterface.OnDismissListener() {
+                    public void onDismiss(DialogInterface dialog) {
+                        Log.d(LOG_TAG, "XDivertPhoneNumbers onDismiss");
+                        finish();
+                    }
+            });
     }
 
     private void setupView() {
+        Log.d(LOG_TAG,"setupView sub1 line number = " + mSubLine1Number[SUB1]
+                + " sub2 line number = " + mSubLine1Number[SUB2]);
         mSub1Line1Number = (EditText) findViewById(R.id.sub1_number);
         if (mSub1Line1Number != null) {
-            mSub1Line1Number.setText(mSub1Number);
+            mSub1Line1Number.setText(mSubLine1Number[SUB1]);
             mSub1Line1Number.setOnFocusChangeListener(mOnFocusChangeHandler);
             mSub1Line1Number.setOnClickListener(mClicked);
         }
 
         mSub2Line1Number = (EditText) findViewById(R.id.sub2_number);
         if (mSub2Line1Number != null) {
-            mSub2Line1Number.setText(mSub2Number);
+            mSub2Line1Number.setText(mSubLine1Number[SUB2]);
             mSub2Line1Number.setOnFocusChangeListener(mOnFocusChangeHandler);
             mSub2Line1Number.setOnClickListener(mClicked);
         }
