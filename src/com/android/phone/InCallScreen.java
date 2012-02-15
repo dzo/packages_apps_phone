@@ -1075,7 +1075,7 @@ public class InCallScreen extends Activity
 
         // Reset the call screen since the calls cannot be transferred
         // across radio technologies.
-        resetInCallScreenMode();
+        // resetInCallScreenMode();
 
         // Unregister for all events from the old obsolete phone
         unregisterForPhoneStates();
