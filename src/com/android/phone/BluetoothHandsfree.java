@@ -561,7 +561,10 @@ public class BluetoothHandsfree {
                 device = mHeadset.getRemoteDevice();
             }
             mAudioManager.setBluetoothScoOn(false);
-            setAudioState(BluetoothHeadset.STATE_AUDIO_DISCONNECTED, device);
+            synchronized(BluetoothHandsfree.this) {
+                setAudioState(BluetoothHeadset.STATE_AUDIO_DISCONNECTED,
+                              device);
+            }
 
             mConnectedSco = null;
         }
@@ -1544,7 +1547,7 @@ public class BluetoothHandsfree {
         }
     }
 
-    private synchronized void setAudioState(int state, BluetoothDevice device) {
+    private void setAudioState(int state, BluetoothDevice device) {
         if (VDBG) log("setAudioState(" + state + ")");
         if (mBluetoothHeadset == null) {
             mAdapter.getProfileProxy(mContext, mProfileListener, BluetoothProfile.HEADSET);
@@ -3041,7 +3044,7 @@ public class BluetoothHandsfree {
         }
     }
 
-    /* package */ synchronized boolean startVoiceRecognition() {
+    /* package */ boolean startVoiceRecognition() {
 
         if  ((isCellularCallInProgress()) ||
              (isVirtualCallInProgress()) ||
@@ -3070,7 +3073,7 @@ public class BluetoothHandsfree {
         return ret;
     }
 
-    /* package */ synchronized boolean stopVoiceRecognition() {
+    /* package */ boolean stopVoiceRecognition() {
 
         if (!isVoiceRecognitionInProgress()) {
             return false;
