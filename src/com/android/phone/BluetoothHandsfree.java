@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2008 The Android Open Source Project
+ * Copyright (c) 2012, Code Aurora Forum. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -783,6 +784,7 @@ public class BluetoothHandsfree {
             IntentFilter filter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
             filter.addAction(TelephonyIntents.ACTION_SIGNAL_STRENGTH_CHANGED);
             filter.addAction(BluetoothA2dp.ACTION_CONNECTION_STATE_CHANGED);
+            filter.addAction(BluetoothA2dp.ACTION_PLAYING_STATE_CHANGED);
             filter.addAction(BluetoothDevice.ACTION_CONNECTION_ACCESS_REPLY);
             mContext.registerReceiver(mStateReceiver, filter);
         }
@@ -948,38 +950,61 @@ public class BluetoothHandsfree {
                     BluetoothDevice device =
                             intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
 
-
                     // We are only concerned about Connected sinks to suspend and resume
                     // them. We can safely ignore SINK_STATE_CHANGE for other devices.
                     if (device == null || (mA2dpDevice != null && !device.equals(mA2dpDevice))) {
                         return;
                     }
+                    updateA2dpState(device, state, oldState);
+                } else if (intent.getAction().equals(
+                    BluetoothA2dp.ACTION_PLAYING_STATE_CHANGED)) {
+                    int state = intent.getIntExtra(BluetoothProfile.EXTRA_STATE,
+                        BluetoothA2dp.STATE_NOT_PLAYING);
+                    int oldState = intent.getIntExtra(BluetoothProfile.EXTRA_PREVIOUS_STATE,
+                        BluetoothA2dp.STATE_NOT_PLAYING);
+                    BluetoothDevice device =
+                            intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
 
-                    synchronized (BluetoothHandsfree.this) {
-                        mA2dpState = state;
-                        if (state == BluetoothProfile.STATE_DISCONNECTED) {
-                            mA2dpDevice = null;
-                        } else {
-                            mA2dpDevice = device;
-                        }
-                        if (oldState == BluetoothA2dp.STATE_PLAYING &&
-                            mA2dpState == BluetoothProfile.STATE_CONNECTED) {
-                            if (mA2dpSuspended) {
-                                if (mPendingScoForA2dp) {
-                                    mHandler.removeMessages(MESSAGE_CHECK_PENDING_SCO);
-                                    if (DBG) log("A2DP suspended, completing SCO");
-                                    connectScoThread(CODEC_MSBC == mRemoteCodec);
-                                    mPendingScoForA2dp = false;
-                                }
-                            }
-                        }
+                    if (device == null || (mA2dpDevice != null && !device.equals(mA2dpDevice))) {
+                        return;
                     }
+                    if (state == BluetoothA2dp.STATE_NOT_PLAYING) {
+                        state = (mA2dp != null) ? mA2dp.getConnectionState(device) :
+                                       BluetoothProfile.STATE_DISCONNECTED;
+                    }
+                    if (oldState == BluetoothA2dp.STATE_NOT_PLAYING) {
+                        oldState = BluetoothProfile.STATE_CONNECTED;
+                    }
+                    updateA2dpState(device, state, oldState);
                 } else if (intent.getAction().
                            equals(BluetoothDevice.ACTION_CONNECTION_ACCESS_REPLY)) {
                     mPhonebook.handleAccessPermissionResult(intent);
                 }
             }
         };
+
+        private void updateA2dpState(BluetoothDevice device, int state, int oldState )
+        {
+            synchronized (BluetoothHandsfree.this) {
+                mA2dpState = state;
+                if (state == BluetoothProfile.STATE_DISCONNECTED) {
+                    mA2dpDevice = null;
+                } else {
+                    mA2dpDevice = device;
+                }
+                if (oldState == BluetoothA2dp.STATE_PLAYING &&
+                    mA2dpState == BluetoothProfile.STATE_CONNECTED) {
+                    if (mA2dpSuspended) {
+                        if (mPendingScoForA2dp) {
+                            mHandler.removeMessages(MESSAGE_CHECK_PENDING_SCO);
+                            if (DBG) log("A2DP suspended, completing SCO");
+                            connectScoThread(CODEC_MSBC == mRemoteCodec);
+                            mPendingScoForA2dp = false;
+                         }
+                     }
+                 }
+             }
+        }
 
         private synchronized void updateBatteryState(Intent intent) {
             int batteryLevel = intent.getIntExtra("level", -1);
