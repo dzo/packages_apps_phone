@@ -70,6 +70,13 @@ public class BluetoothHandsfree {
             && (SystemProperties.getInt("ro.debuggable", 0) == 1);
     private static final boolean VDBG = (PhoneApp.DBG_LEVEL >= 2);  // even more logging
 
+    private static final int VERSION_1_5 = 105;
+    private static final int VERSION_1_6 = 106;
+    private static final String PROP_VERSION_KEY = "ro.bluetooth.hfp.ver";
+    private static final String PROP_VERSION_1_6 = "1.6";
+
+    private static final int mVersion;
+
     public static final int TYPE_UNKNOWN           = 0;
     public static final int TYPE_HEADSET           = 1;
     public static final int TYPE_HANDSFREE         = 2;
@@ -204,6 +211,16 @@ public class BluetoothHandsfree {
     private boolean mIsChld1Command;
     private HandsfreeMessageHandler mHandler;
 
+    static {
+        if (PROP_VERSION_1_6.equals(SystemProperties.get(PROP_VERSION_KEY))) {
+            mVersion = VERSION_1_6;
+            Log.d(TAG, "Version 1.6");
+        } else {
+            mVersion = VERSION_1_5;
+            Log.d(TAG, "Version 1.5");
+        }
+    }
+
     public static String typeToString(int type) {
         switch (type) {
         case TYPE_UNKNOWN:
@@ -282,7 +299,7 @@ public class BluetoothHandsfree {
         mAudioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
         cdmaSetSecondCallState(false);
 
-        if (SystemProperties.getBoolean("ro.qualcomm.bluetooth.hfp.wbs", false)) {
+        if (mVersion == VERSION_1_6) {
             if (DBG) Log.d(TAG, "BRSF_AG_CODEC_NEGOTIATION is enabled!");
             mLocalBrsf |= BRSF_AG_CODEC_NEGOTIATION;
         } else {
@@ -2853,6 +2870,13 @@ public class BluetoothHandsfree {
             }
         });
 
+        // End of AT commands for HFP 1.5
+        if (mVersion < VERSION_1_6) {
+            mPhonebook.register(parser);
+            return;
+        }
+
+        // AT commands only for HFP 1.6 below this line
         // Codec Connection
         parser.register("+BCC", new AtCommandHandler() {
             @Override
