@@ -19,9 +19,13 @@ package com.android.phone;
 
 import android.app.Notification;
 import android.app.PendingIntent;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.media.AudioManager;
 import android.net.Uri;
 import android.os.SystemProperties;
+import android.preference.PreferenceManager;
 import android.telephony.PhoneNumberUtils;
 import android.text.TextUtils;
 import android.util.Log;
@@ -184,6 +188,19 @@ public class MSimNotificationMgr extends NotificationMgr {
                     pendingIntent  // contentIntent
                     );
             notification.defaults |= Notification.DEFAULT_SOUND;
+
+            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(mContext);
+            String vibrateWhen = prefs.getString(
+                    CallFeaturesSetting.BUTTON_VOICEMAIL_NOTIFICATION_VIBRATE_WHEN_KEY, "never");
+            boolean vibrateAlways = vibrateWhen.equals("always");
+            boolean vibrateSilent = vibrateWhen.equals("silent");
+            AudioManager audioManager =
+                    (AudioManager) mContext.getSystemService(Context.AUDIO_SERVICE);
+            boolean nowSilent = audioManager.getRingerMode() == AudioManager.RINGER_MODE_VIBRATE;
+            if (vibrateAlways || (vibrateSilent && nowSilent)) {
+                notification.defaults |= Notification.DEFAULT_VIBRATE;
+            }
+
             notification.flags |= Notification.FLAG_NO_CLEAR;
             configureLedNotification(notification);
             int notificationId = (subscription == 0) ? VOICEMAIL_NOTIFICATION

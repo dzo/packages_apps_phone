@@ -129,9 +129,9 @@ public class NotificationMgr implements CallerInfoAsyncQuery.OnQueryCompleteList
         mNotificationManager =
                 (NotificationManager) app.mContext.getSystemService(Context.NOTIFICATION_SERVICE);
         mStatusBarManager =
-                (StatusBarManager) app.getSystemService(Context.STATUS_BAR_SERVICE);
+                (StatusBarManager) app.mContext.getSystemService(Context.STATUS_BAR_SERVICE);
         mPowerManager =
-                (PowerManager) app.getSystemService(Context.POWER_SERVICE);
+                (PowerManager) app.mContext.getSystemService(Context.POWER_SERVICE);
         mPhone = app.phone;  // TODO: better style to use mCM.getDefaultPhone() everywhere instead
         mCM = app.mCM;
         statusBarHelper = new StatusBarHelper();
@@ -711,7 +711,7 @@ public class NotificationMgr implements CallerInfoAsyncQuery.OnQueryCompleteList
         // call.  (The status bar icon is needed only if you navigate *away*
         // from the in-call UI.)
         boolean suppressNotification = mApp.isShowingCallScreen();
-        // if (DBG) log("- suppressNotification: initial value: " + suppressNotification);
+        if (DBG) log("- suppressNotification: initial value: " + suppressNotification);
 
         // Additionally, suppress the notification if the screen is off.
         // (Of course no UI is visible at this point(!) -- we're doing
@@ -719,7 +719,7 @@ public class NotificationMgr implements CallerInfoAsyncQuery.OnQueryCompleteList
         // bar when the screen turns back on (due to the prox sensor, for
         // example) while still on the InCallScreen.)
         boolean isScreenOn = mPowerManager.isScreenOn();
-        // if (DBG) log("  - suppressNotification: isScreenOn = " + isScreenOn);
+        if (DBG) log("  - suppressNotification: isScreenOn = " + isScreenOn);
         if (!isScreenOn) suppressNotification = true;
 
         // ...except for a couple of cases where we *never* suppress the
@@ -736,7 +736,7 @@ public class NotificationMgr implements CallerInfoAsyncQuery.OnQueryCompleteList
         //   - If "voice privacy" mode is active: always show the notification,
         //     since that's the only "voice privacy" indication we have.
         boolean enhancedVoicePrivacy = mApp.notifier.getVoicePrivacyState();
-        // if (DBG) log("updateInCallNotification: enhancedVoicePrivacy = " + enhancedVoicePrivacy);
+        if (DBG) log("updateInCallNotification: enhancedVoicePrivacy = " + enhancedVoicePrivacy);
         if (enhancedVoicePrivacy) suppressNotification = false;
 
         if (suppressNotification) {
