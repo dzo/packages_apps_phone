@@ -994,7 +994,14 @@ public class BluetoothHeadsetService extends Service {
             if (headset == null) return BluetoothHeadset.STATE_AUDIO_DISCONNECTED;
 
             return headset.mAudioState;
-       }
+        }
+
+        public boolean isBluetoothVoiceDialingEnabled(BluetoothDevice device) {
+            BluetoothRemoteHeadset headset = mRemoteHeadsets.get(device);
+            if (headset == null || mBtHandsfree == null) return false;
+
+            return mBtHandsfree.isBluetoothVoiceDialingEnabled();
+        }
     };
 
     @Override

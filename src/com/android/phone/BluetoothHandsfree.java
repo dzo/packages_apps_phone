@@ -702,6 +702,10 @@ public class BluetoothHandsfree {
         mAudioManager.setParameters(HEADSET_NAME+"="+name+";"+HEADSET_NREC+"=on");
     }
 
+    boolean isBluetoothVoiceDialingEnabled() {
+       return ((mRemoteBrsf & BRSF_HF_VOICE_REG_ACT) != 0x0) ? true : false;
+    }
+
 
     /** Represents the data that we send in a +CIND or +CIEV command to the HF
      */
