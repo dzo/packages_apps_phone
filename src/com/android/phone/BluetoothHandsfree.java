@@ -543,6 +543,11 @@ public class BluetoothHandsfree {
         // Sync with setting mConnectScoThread to null to assure the validity of
         // the condition
         synchronized (ScoSocketConnectThread.class) {
+            if (mConnectedSco != null) {
+                if (DBG) log("SCO audio is already connected");
+                return;
+            }
+
             if (mConnectScoThread == null) {
                 BluetoothDevice device = mHeadset.getRemoteDevice();
                 if (getAudioState(device) == BluetoothHeadset.STATE_AUDIO_DISCONNECTED) {
