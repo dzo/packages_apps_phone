@@ -676,9 +676,10 @@ public class MSimPhoneApp extends PhoneApp {
 
         if (subManager.getActiveSubscriptionsCount() == 1) {
             for (int i = 0; i < count; i++) {
-                if (subManager.isSubActive(i))
+                if (subManager.isSubActive(i)) {
                     sub = i;
                     break;
+                }
             }
         } else {
             for (int i = 0; i < count; i++) {
