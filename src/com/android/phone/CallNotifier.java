@@ -610,8 +610,6 @@ public class CallNotifier extends Handler
             return;
         }
 
-        // set phone mode to RINGING
-        PhoneUtils.setAudioMode(mCM);
         // Stop any signalInfo tone being played on receiving a Call
         stopSignalInfoTone();
 
