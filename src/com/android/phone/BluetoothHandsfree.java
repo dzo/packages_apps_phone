@@ -1075,10 +1075,17 @@ public class BluetoothHandsfree {
         }
 
         private synchronized void updateServiceState(boolean sendUpdate, ServiceState state) {
-            int service = state.getState() == ServiceState.STATE_IN_SERVICE ? 1 : 0;
-            int roam = state.getRoaming() ? 1 : 0;
+            int service;
+            int roam;
             int stat;
             AtCommandResult result = new AtCommandResult(AtCommandResult.UNSOLICITED);
+
+            if (state == null) {
+                sendURC(result.toString()); // send nothing
+                return;
+            }
+            service = state.getState() == ServiceState.STATE_IN_SERVICE ? 1 : 0;
+            roam = state.getRoaming() ? 1 : 0;
             mServiceState = state;
             if (service == 0) {
                 stat = 0;
@@ -2637,7 +2644,12 @@ public class BluetoothHandsfree {
         parser.register("+COPS", new AtCommandHandler() {
             @Override
             public AtCommandResult handleReadCommand() {
-                String operatorName = phone.getServiceState().getOperatorAlphaLong();
+                String operatorName = null;
+                mServiceState = phone.getServiceState();
+                if (mServiceState != null) {
+                    operatorName = mServiceState.getOperatorAlphaLong();
+                }
+
                 if (operatorName != null) {
                     if (operatorName.length() > 16) {
                         operatorName = operatorName.substring(0, 16);
@@ -2824,7 +2836,11 @@ public class BluetoothHandsfree {
         parser.register("+CNUM", new AtCommandHandler() {
             @Override
             public AtCommandResult handleActionCommand() {
-                String number = phone.getLine1Number();
+                String number = null;
+                if (phone != null) {
+                    number = phone.getLine1Number();
+                }
+
                 if (number == null) {
                     return new AtCommandResult(AtCommandResult.OK);
                 }
