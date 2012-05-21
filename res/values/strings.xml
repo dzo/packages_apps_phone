@@ -217,6 +217,8 @@
     <string name="label_rspdp">RUIM service provider unlock PIN</string>
     <!-- Label text for PIN entry widget on RUIM RUIM Depersonalization panel -->
     <string name="label_rdp">RUIM RUIM unlock PIN</string>
+    <!-- Label text for PUK entry widget on Depersonalization panel -->
+    <string name="label_puk">Enter PUK</string>
     <!-- Button label on SIM Depersonalization panel -->
     <string name="sim_ndp_unlock_text">Unlock</string>
     <!-- Button label on SIM Depersonalization panel -->
@@ -243,6 +245,8 @@
     <string name="requesting_rc_unlock">Requesting RUIM corporate unlock\u2026</string>
     <!-- Status message displayed on RUIM RUIM Depersonalization panel -->
     <string name="requesting_ruim_unlock">Requesting RUIM RUIM unlock\u2026</string>
+    <!-- Status message displayed on PUK Depersonalization panel -->
+    <string name="requesting_puk_unlock">Requesting PUK unlock\u2026</string>
     <!-- Error message displayed on SIM Network Depersonalization panel -->
     <string name="nw_unlock_failed">SIM Network unlock request unsuccessful.</string>
     <!-- Error message displayed on SIM Network Subset Depersonalization panel -->
@@ -265,6 +269,8 @@
     <string name="rc_unlock_failed">RUIM Corporate unlock request unsuccessful.</string>
     <!-- Error message displayed on RUIM RUIM Depersonalization panel -->
     <string name="ruim_unlock_failed">RUIM RUIM unlock request unsuccessful.</string>
+    <!-- Error message displayed on PUK Depersonalization panel -->
+    <string name="puk_unlock_failed">PUK unlock unsuccessful.</string>
     <!-- Success message displayed on SIM Network Depersonalization panel -->
     <string name="nw_unlock_success">SIM Network unlock successful.</string>
     <!-- Success message displayed on SIM Network Subset Depersonalization panel -->
@@ -287,6 +293,8 @@
     <string name="rc_unlock_success">RUIM Corporate unlock successful.</string>
     <!-- Success message displayed on RUIM RUIM Depersonalization panel -->
     <string name="ruim_unlock_success">RUIM RUIM unlock successful.</string>
+    <!-- Success message displayed on PUK Depersonalization panel -->
+    <string name="puk_unlock_success">PUK unlock successful.</string>
 
     <!-- Title for the dialog used to display the user's IMEI number -->
     <string name="imei">IMEI</string>
