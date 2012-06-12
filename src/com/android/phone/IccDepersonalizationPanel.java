@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2008 The Android Open Source Project
- * Copyright (c) 2010-2011, Code Aurora Forum. All rights reserved.
+ * Copyright (c) 2010-2012, Code Aurora Forum. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -385,9 +385,35 @@ public class IccDepersonalizationPanel extends IccPanel {
                         break;
                 }
                 break;
+            case PERSOSUBSTATE_SIM_NETWORK_PUK:
+            case PERSOSUBSTATE_SIM_NETWORK_SUBSET_PUK:
+            case PERSOSUBSTATE_SIM_CORPORATE_PUK:
+            case PERSOSUBSTATE_SIM_SERVICE_PROVIDER_PUK:
+            case PERSOSUBSTATE_SIM_SIM_PUK:
+            case PERSOSUBSTATE_RUIM_NETWORK1_PUK:
+            case PERSOSUBSTATE_RUIM_NETWORK2_PUK:
+            case PERSOSUBSTATE_RUIM_HRPD_PUK:
+            case PERSOSUBSTATE_RUIM_CORPORATE_PUK:
+            case PERSOSUBSTATE_RUIM_SERVICE_PROVIDER_PUK:
+            case PERSOSUBSTATE_RUIM_RUIM_PUK:
+                switch (type) {
+                    case ENTRY:
+                        label = R.string.label_puk;
+                        break;
+                    case IN_PROGRESS:
+                        label = R.string.requesting_puk_unlock;
+                        break;
+                    case ERROR:
+                        label = R.string.puk_unlock_failed;
+                        break;
+                    case SUCCESS:
+                        label = R.string.puk_unlock_success;
+                        break;
+                }
+                break;
             default:
                 log ("Unsupported Perso Subtype :" + persosubtype);
-                break;
+                return;
         }
         if (type == 0) {
             String displayText = "";
